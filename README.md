@@ -36,19 +36,22 @@ message.
 
 # Configuration
 
-No configuration is required but you may wish to bind chronos-add-timer, set
-the notification function chronos-action-function and change the faces used in
-the chronos buffer.  In my init file (which uses the excellent use-package) I
-set notification to be a bell played by mpv and a temporary message shown in the
-buffer, and bind the add command to (C-c t):
+No configuration is required but you may wish to bind chronos-add-timer, set the
+notification function chronos-action-function and change the faces used in the
+chronos buffer.  In my init file (which uses the excellent use-package) I bind
+the chronos-add-timer command to (C-c t) set notification to be:
+* a bell sound played by mpv
+* an in-buffer temporary message shown in a large (legible from a distance) face chronos-notification
+* notification through dunst, a desktop notification daemon
+
 
     (use-package chronos
       :init      (progn
-                  (setq chronos-shell-notify-command "mpv --really-quiet --af=scaletempo=speed=pitch --speed=0.65 ~/wip/progs/cdt/temple-bell-zen.mp3")
-                  (setq chronos-action-function '(lambda (c)
-                                                   (chronos-shell-notify c)
-                                                   (chronos-buffer-notify c)
-                                                   (chronos-dunstify c))))
+                   (setq chronos-shell-notify-command "mpv --really-quiet --af=scaletempo=speed=pitch --speed=0.65 ~/wip/progs/cdt/temple-bell-zen.mp3")
+                   (setq chronos-action-function '(lambda (c)
+                                                    (chronos-shell-notify c)
+                                                    (chronos-buffer-notify c)
+                                                    (chronos-dunstify c))))
       :bind      ("C-c t" . chronos-add-timer))
 
 # Expiry time specification
@@ -69,15 +72,16 @@ seconds.  Positive numbers indicate later expiry, negative
 ones earlier.
 
 For example, if the current time is 17:00:
-* 5 gives an expiry time of 17:05
-* 1:30 gives 18:30
-* 0:0:30 gives 30 seconds after 17:00
-* 0 gives a count up timer.
+* **5** gives an expiry time of 17:05
+* **1:30** gives 18:30
+* **0:0:30** gives 30 seconds after 17:00
+* **0** gives a count up timer starting now, at 17:00.
 
 Negative relative times are more useful against existing timers.  Here, a timer
 was set for the absolute time 19:00, then with the cursor on this timer and
-using (C-u a), two relative timers were set to expire were set for -5 (five
-minutes before end, i.e. 18:55) and -15 (fifteen minutes before end, i.e. 18:45).
+using (C-u a), two relative timers were set to expire earlier, one with **-5**
+(five minutes before end, i.e. 18:55) and the other with **-15** (fifteen
+minutes before end, i.e. 18:45).
 
     Expiry      Elapsed      To go  Message 
     [18:04]                         --now--
@@ -90,15 +94,16 @@ minutes before end, i.e. 18:55) and -15 (fifteen minutes before end, i.e. 18:45)
 Each timer can be paused/unpaused, adjusted or deleted.  Default keybindings
 in the chronos buffer are:
 
-* SPC - pause/unpause (pausing affects time to go and the expiry time, but not
-      elapsed time)
-* a   - add a timer.
-* n/p - move selection down/up
-* d   - delete selected timer
-* e   - edit selected timer
-* l   - lap selected timer
-* q   - quit window
-* Q   - prompt if any timers exist, kill the chronos buffer and clean up.
+<table>
+<tr><td>SPC</td><td>pause/unpause (pausing affects time to go and the expiry time, but not elapsed time)</td></tr>
+<tr><td>a  </td><td>add a timer</td></tr>
+<tr><td>n/p</td><td>move selection down/up</td></tr>
+<tr><td>d  </td><td>delete selected timer</td></tr>
+<tr><td>e  </td><td>edit selected timer</td></tr>
+<tr><td>l  </td><td>lap selected timer</td></tr>
+<tr><td>q  </td><td>quit window</td></tr>
+<tr><td>Q  </td><td>prompt if any timers exist, kill the chronos buffer and clean up</td></tr>
+</table>
 
 Whether relative times are against current time or the expiry time of the
 selected timer is controlled by the prefix.
