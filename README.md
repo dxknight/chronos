@@ -1,5 +1,20 @@
 # Chronos
-Chronos: multiple simultaneous countdown / countup timers in Emacs.
+
+Chronos provides multiple countdown / countup timers, shown sorted by expiry
+time in a special buffer \*chronos\*.
+
+    Expiry      Elapsed      To go  Message
+    [17:02]                         --now--
+    [17:07]          21       4:51  Coffee
+
+Here, the time 'now' is 17:02. A five minute countdown timer was set up 21
+seconds ago.  It is expected to expire in 4 minutes 51 seconds at 17:07.
+
+    Expiry      Elapsed      To go  Message
+    [17:13]          45         45+ Test run number 3
+    [17:13]                         --now--
+
+Here, a countup timer was started 45 seconds ago to time Test run number 3.
 
 # Motivation
 
@@ -43,7 +58,8 @@ of another timer, or absolute.
 
 ## absolute time
 
-Start with an =, followed by 24hr clock.  For example, **=17:00** is an expiry time of five o'clock in the afternoon.
+Start with an =, followed by 24hr clock.  For example, **=17:00** is an expiry
+time of five o'clock in the afternoon.
 
 ## relative time
 
@@ -58,12 +74,10 @@ For example, if the current time is 17:00:
 * 0:0:30 gives 30 seconds after 17:00
 * 0 gives a count up timer.
 
-Negative relative times are more useful against existing
-chronos.  Here, a chrono was set for the absolute time
-19:00, then with the cursor on this chrono and using 'C-u a'
-to add a relative chrono, two extra notifications were set
-for -5 (five minutes before end, 18:55) and -15 (fifteen
-minutes before end, 18:45).
+Negative relative times are more useful against existing timers.  Here, a timer
+was set for the absolute time 19:00, then with the cursor on this timer and
+using (C-u a), two relative timers were set to expire were set for -5 (five
+minutes before end, i.e. 18:55) and -15 (fifteen minutes before end, i.e. 18:45).
 
     Expiry      Elapsed      To go  Message 
     [18:04]                         --now--
@@ -73,7 +87,7 @@ minutes before end, 18:45).
 
 # Controls
 
-Each chrono can be paused/unpaused, adjusted or deleted.  Default keybindings
+Each timer can be paused/unpaused, adjusted or deleted.  Default keybindings
 in the chronos buffer are:
 
 * SPC - pause/unpause (pausing affects time to go and the expiry time, but not
@@ -86,22 +100,22 @@ in the chronos buffer are:
 * q   - quit window
 * Q   - prompt if any timers exist, kill the chronos buffer and clean up.
 
-Whether relative times are against current or a selected chrono is controlled
-by the prefix.
+Whether relative times are against current time or the expiry time of the
+selected timer is controlled by the prefix.
 
-* Adding a timer with (a) is usually relative to current time; (C-u a) will
-  calculate relative times against the selected timer.
+* Adding a timer with (a) is relative to current time; (C-u a) will
+  calculate expiry times relative to the selected timer.
 
-* Editing (adjusting) the selected timer with (e) will calculate relative
-  times against the currently set expiry time of the timer.  (C-u e) will
-  calculate relative times against current.
+* Editing (adjusting) the selected timer with (e) will calculate times relative
+  to the currently set expiry time of the timer.  (C-u e) will calculate
+  relative times against the current time.
 
 # Notifications
 
-By default, expired timers are shown in the chronos buffer above the
---now-- line until they are deleted.  Additional actions can be set for when
-a timer expires by setting `chronos-action-function' to a custom function,
-perhaps referring to:
+By default, expired timers are shown in the chronos buffer above the --now--
+line until they are deleted, highlit with the chronos-expired face.  Additional
+actions can be set for when a timer expires by setting `chronos-action-function'
+to a custom function, perhaps referring to:
 
 - A temporary notification in the chronos buffer, shown in a customizable
   face for a customizable period. See chronos-buffer-notify
@@ -111,6 +125,14 @@ perhaps referring to:
 - Notifying in the mode line. See chronos-modeline-notify
 
 - Using an external notification daemon, e.g. dunstify.  See chronos-dunstify.
+
+Countup timers (those started with 0 time to expire) do not trigger these
+notifications, although they are highlit with the chronos-expired face.
+
+If an unexpired timer is edited so that its expiry time is now in the past, no
+notification will be triggered.  Conversely, adjusting an expired timer so that
+its expiry time is now in the future will trigger any notifications when the
+timer expires.
 
 # Dependencies
 
