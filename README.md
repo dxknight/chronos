@@ -18,13 +18,14 @@ Here, a countup timer was started 45 seconds ago to time Test run number 3.
 
 # Motivation
 
-There are a number of Emacs packages that provide timer functionality, but I
-could not find one that showed multiple simultaneous countdown and countup
-timers.
+There are a number of Emacs packages that provide timer functionality, such as
+job tracking, alarms or a countdown timer in the mode line.  However, I wanted
+one that showed multiple simultaneous countdown and countup timers in a specific
+buffer.
 
 Possible use cases include:
 
-* Cooking timers (actually, what I use it most often for).
+* Cooking timers (what I use it for most often).
 * Presentation timers (when to start wrapping up, when to start questions etc.).
 * Timing how long something takes (on a scale of seconds to hours).
 
@@ -49,10 +50,10 @@ chronos buffer.  In my init file (which uses the excellent use-package) I have:
                                                     (chronos-dunstify c))))
       :bind      ("C-c t" . chronos-add-timer))
 
-This binds the chronos-add-timer command to (C-c t) set notification to be:
-* a bell sound played by mpv
-* an in-buffer temporary message shown in a large (legible from a distance) face chronos-notification
-* notification through dunst, a desktop notification daemon
+This binds the chronos-add-timer command to (C-c t) and sets notification to be:
+* a bell sound played by mpv;
+* an in-buffer temporary message shown in a large (legible from a distance) face chronos-notification;
+* notification through dunst, a desktop notification daemon.
 
 # Expiry time specification
 
