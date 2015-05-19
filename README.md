@@ -15,7 +15,7 @@ Possible use cases include:
 
 # Installation
 
-Put chronos.el somewhere Emacs can find it and run (require 'chronos').  M-x
+Put chronos.el somewhere Emacs can find it and run (require 'chronos).  M-x
 chronos-add-timer will start chronos and prompt you for an expiry time and a
 message.
 
@@ -29,10 +29,11 @@ buffer, and bind the add command to (C-c t):
 
     (use-package chronos
       :init      (progn
-                 (setq chronos-shell-notify-command "mpv --really-quiet --af=scaletempo=speed=pitch --speed=0.65 ~/wip/progs/cdt/temple-bell-zen.mp3")
-                 (setq chronos-action-function '(lambda (c)
-                                                  (chronos-shell-notify c)
-                                                  (chronos-buffer-notify c))))
+                  (setq chronos-shell-notify-command "mpv --really-quiet --af=scaletempo=speed=pitch --speed=0.65 ~/wip/progs/cdt/temple-bell-zen.mp3")
+                  (setq chronos-action-function '(lambda (c)
+                                                   (chronos-shell-notify c)
+                                                   (chronos-buffer-notify c)
+                                                   (chronos-dunstify c))))
       :bind      ("C-c t" . chronos-add-timer))
 
 # Expiry time specification
