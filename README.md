@@ -23,8 +23,7 @@ Here, a countup timer was started 45 seconds ago to time Test run number 3.
 
 Various notification methods are available.  Here is a picture of the in-buffer
 notification method, which puts the message of an expired timer in the
-chronos-notification face (sized, in this example, to be readable from a
-distance) for chronos-notification-time seconds.
+`chronos-notification` face for `chronos-notification-time` seconds.
 
 ![Example of in-buffer notification](example.png "In-buffer notification")
 
@@ -43,14 +42,14 @@ Possible use cases include:
 
 # Installation
 
-Put chronos.el somewhere Emacs can find it and run (require 'chronos).  M-x
-chronos-add-timer will start chronos and prompt you for an expiry time and a
+Put chronos.el somewhere Emacs can find it and run `(require 'chronos)`.  `M-x
+chronos-add-timer` will start chronos and prompt you for an expiry time and a
 message.
 
 # Configuration
 
-No configuration is required but you may wish to bind chronos-add-timer, set the
-notification function chronos-action-function and change the faces used in the
+No configuration is required but you may wish to bind `chronos-add-timer`, set the
+notification function `chronos-action-function` and change the faces used in the
 chronos buffer.  In my init file (which uses the excellent use-package) I have:
 
     (use-package chronos
@@ -62,9 +61,9 @@ chronos buffer.  In my init file (which uses the excellent use-package) I have:
                                                     (chronos-dunstify c))))
       :bind      ("C-c t" . chronos-add-timer))
 
-This binds the chronos-add-timer command to (C-c t) and sets notification to be:
+This binds the `chronos-add-timer` command to `(C-c t)` and sets notification to be:
 * a bell sound played by mpv;
-* an in-buffer temporary message shown in a large (legible from a distance) face chronos-notification;
+* an in-buffer temporary message shown in a large (legible from a distance) face `chronos-notification`;
 * notification through dunst, a desktop notification daemon.
 
 # Expiry time specification
@@ -94,7 +93,7 @@ For example, if the current time is 17:00:
 
 Negative relative times are more useful against existing timers.  Here, a timer
 was set for the absolute time 19:00, then with the cursor on this timer and
-using (C-u a), two relative timers were set to expire earlier, one with **-5**
+using `(C-u a)`, two relative timers were set to expire earlier, one with **-5**
 (five minutes before end, i.e. 18:55) and the other with **-15** (fifteen
 minutes before end, i.e. 18:45).
 
@@ -124,31 +123,32 @@ in the chronos buffer are:
 Whether relative times are against current time or the expiry time of the
 selected timer is controlled by the prefix.
 
-* Adding a timer with (a) is relative to current time; (C-u a) will
+* Adding a timer with `a` is relative to current time; `(C-u a)` will
   calculate expiry times relative to the selected timer.
 
-* Editing (adjusting) the selected timer with (e) will calculate times relative
-  to the currently set expiry time of that timer.  (C-u e) will calculate
+* Editing (adjusting) the selected timer with `e` will calculate times relative
+  to the currently set expiry time of that timer.  `(C-u e)` will calculate
   relative times against the current time.
 
 # Notifications
 
 By default, expired timers are shown in the chronos buffer above the --now--
 line until they are deleted, highlit with the chronos-expired face.  Additional
-actions can be set for when a timer expires by setting `chronos-action-function'
+actions can be set for when a timer expires by setting `chronos-action-function`
 to a custom function, perhaps referring to:
 
-- A temporary notification in the chronos buffer, shown in the chronos-notification
-  face for chronos-notification-time seconds. See chronos-buffer-notify
+- A temporary notification in the chronos buffer, shown in the `chronos-notification`
+  face for `chronos-notification-time` seconds. See `chronos-buffer-notify`.
 
-- Running a shell command to e.g. ring a bell.  See chronos-shell-notify-command and chronos-shell-notify
+- Running a shell command to e.g. ring a bell.  See
+  `chronos-shell-notify-command` and `chronos-shell-notify`.
 
-- Notifying in the echo area / \*Messages buffer\*. See chronos-message-notify
+- Notifying in the echo area / \*Messages buffer\*. See `chronos-message-notify`.
 
-- Using an external notification daemon, e.g. dunstify.  See chronos-dunstify.
+- Using an external notification daemon, e.g. dunstify.  See `chronos-dunstify`.
 
 Countup timers (those started with 0 time to expire) do not trigger these
-notifications, although they are highlit with the chronos-expired face.
+notifications, although they are highlit with the `chronos-expired` face.
 
 If an unexpired timer is edited so that its expiry time is now in the past, no
 notification will be triggered.  Conversely, adjusting an expired timer so that
