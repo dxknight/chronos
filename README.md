@@ -1,7 +1,7 @@
 # Chronos
 
 Chronos provides multiple countdown / countup timers, shown sorted by expiry
-time in a special buffer \*chronos\*.
+time in a special buffer \*chronos\*, updated every second.
 
     Expiry      Elapsed      To go  Message
     [17:02]                         --now--
@@ -9,6 +9,11 @@ time in a special buffer \*chronos\*.
 
 Here, the time 'now' is 17:02. A five minute countdown timer was set up 21
 seconds ago.  It is expected to expire in 4 minutes 51 seconds at 17:07.
+
+The reason elapsed time is 21 seconds but there are still four minutes and fifty
+one seconds to go is that the timer was paused for 12 seconds.  Pausing a timer
+stops the 'To go' figure and updates the expected expiry time accordingly, but the
+elapsed time keeps running unaffected.
 
     Expiry      Elapsed      To go  Message
     [17:13]          45         45+ Test run number 3
@@ -100,6 +105,7 @@ in the chronos buffer are:
 <tr><td>a  </td><td>add a timer</td></tr>
 <tr><td>n/p</td><td>move selection down/up</td></tr>
 <tr><td>d  </td><td>delete selected timer</td></tr>
+<tr><td>D  </td><td>delete all expired timers</td></tr>
 <tr><td>e  </td><td>edit selected timer</td></tr>
 <tr><td>l  </td><td>lap selected timer</td></tr>
 <tr><td>q  </td><td>quit window</td></tr>
@@ -113,7 +119,7 @@ selected timer is controlled by the prefix.
   calculate expiry times relative to the selected timer.
 
 * Editing (adjusting) the selected timer with (e) will calculate times relative
-  to the currently set expiry time of the timer.  (C-u e) will calculate
+  to the currently set expiry time of that timer.  (C-u e) will calculate
   relative times against the current time.
 
 # Notifications
