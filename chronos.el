@@ -7,7 +7,7 @@
 ;; Package-Version: 1.0
 ;; Version: 1.0
 ;; Keywords: calendar
-;; URL: http://github.com/...
+;; URL: http://github.com/dxknight/chronos
 
 ;; This program is free software; you can redistribute it and/or
 ;; modify it under the terms of the GNU General Public License as

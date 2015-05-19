@@ -23,7 +23,8 @@ Here, a countup timer was started 45 seconds ago to time Test run number 3.
 
 Various notification methods are available.  Here is a picture of the in-buffer
 notification method, which puts the message of an expired timer in the
-chronos-notification face for chronos-notification-time seconds.
+chronos-notification face (sized, in this example, to be readable from a
+distance) for chronos-notification-time seconds.
 
 ![Example of in-buffer notification](example.png "In-buffer notification")
 
