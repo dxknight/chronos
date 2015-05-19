@@ -21,6 +21,12 @@ elapsed time keeps running unaffected.
 
 Here, a countup timer was started 45 seconds ago to time Test run number 3.
 
+Various notification methods are available.  Here is a picture of the in-buffer
+notification method, which puts the message of an expired timer in the
+chronos-notification face for chronos-notification-time seconds.
+
+![Example of in-buffer notification](example.png "In-buffer notification")
+
 # Motivation
 
 There are a number of Emacs packages that provide timer functionality, such as
@@ -131,8 +137,8 @@ line until they are deleted, highlit with the chronos-expired face.  Additional
 actions can be set for when a timer expires by setting `chronos-action-function'
 to a custom function, perhaps referring to:
 
-- A temporary notification in the chronos buffer, shown in a customizable
-  face for a customizable period. See chronos-buffer-notify
+- A temporary notification in the chronos buffer, shown in the chronos-notification
+  face for chronos-notification-time seconds. See chronos-buffer-notify
 
 - Running a shell command to e.g. ring a bell.  See chronos-shell-notify-command and chronos-shell-notify
 

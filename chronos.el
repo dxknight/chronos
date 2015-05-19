@@ -93,7 +93,7 @@
   :group 'chronos)
 
 (defface chronos-notification-clock
-  '((t (:inherit bold :height 15.0)))
+  '((t (:inherit bold :height 10.0)))
   "Face for in-buffer clock shown with notifications."
   :group 'chronos)
 
