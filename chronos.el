@@ -89,12 +89,12 @@
 
 (defface chronos-notification
   '((t (:inherit warning :height 8.0)))
-  "Face for in-window notifications."
+  "Face for in-buffer notifications."
   :group 'chronos)
 
 (defface chronos-notification-clock
   '((t (:inherit bold :height 15.0)))
-  "Face for in-window notifications."
+  "Face for in-buffer clock shown with notifications."
   :group 'chronos)
 
 (defvar chronos-buffer-name "*chronos*"
@@ -110,18 +110,12 @@
   "How many lines in the chronos buffer header")
 
 (defvar chronos-action-function nil
-  "A function taking a chrono as argument, called when the chrono
+  "A function taking a timer as argument, called when the timer
   expires.  Nil means no action.")
 
 (defvar chronos-shell-notify-command nil
-  "A shell command run when a chrono expires to, for example,
+  "A shell command run when a timer expires to, for example,
   ring a bell.  Nil means no shell command is run.")
-
-(defvar chronos--buffer nil
-  "The special buffer for displaying timers.")
-
-(defvar chronos--timers-list nil
-  "The list of timers.")
 
 (defvar chronos-notification-time 15
   "How many seconds to show a notification in buffer.  0 means do
@@ -129,6 +123,12 @@
 
 (defvar chronos-notification-bullet-indent " * "
   "Text to use to bullet/indent notifications.")
+
+(defvar chronos--buffer nil
+  "The special buffer for displaying timers.")
+
+(defvar chronos--timers-list nil
+  "The list of timers.")
 
 (defvar chronos--notification-list nil
   "List of notifications to display in buffer notification area.")
@@ -172,43 +172,47 @@
 (define-key chronos-mode-map (kbd "n")   'chronos-next-line)
 (define-key chronos-mode-map (kbd "p")   'chronos-previous-line)
 
-;; Timer objects
-;;
-;; A timer is represented by a list starting with the keyword 'chronos-timer followed
-;; by TIME, MSG, ACTION, START
-;;
-;; TIME is
-;;
-;; * nil : for the 'now' line that represents the current time
-;;
-;; * a float : for a paused timer, representing the seconds to go to (+) or past
-;;             (-) expiry when it was paused.
-;;
-;; * a 4 int list : for a running timer, representing the expiry time in
-;;                  standard emacs time format.
-;;
-;; MESSAGE is a string, used for labelling and notification
-;;
-;; ACTION is a boolean, whether there should be an action on expiry of the
-;; timer.
-;;
-;;   when a running timer has negative time-to-go/gone and :action is t:
-;;   * perform action
-;;   * set action to nil
-;;
-;;   when a running or paused timer has time-to-go/gone adjusted from -ve to +ve
-;;   * set action to t
-;;
-;;   when a running or paused timer has time-to-go/gone adjusted from +ve to -ve
-;;   * set action to nil
-;;
-;; START is the 4 int list creation time of the timer, or nil for the 'now'
-;; line.
-
 (defun chronos--make-timer (expiry-time message &optional start)
   "Make a new timer object labled with MESSAGE that expires at
 EXPIRY-TIME.  The action flag will be set to true if time to
-expiry is positive, otherwise nil."
+expiry is positive, otherwise nil.
+
+A timer is represented by a list starting with the keyword
+'chronos-timer followed by TIME, MSG, ACTION, START
+
+TIME is
+
+* nil : for the 'now' line that represents the current time
+
+* a float : for a paused timer, representing the seconds to go
+            to (+) or past (-) expiry when it was paused.
+
+* a 4 int list : for a running timer, representing the expiry
+                 time in standard emacs time format.
+
+MESSAGE is a string, used for labelling and notification
+
+ACTION is a boolean, whether there should be an action on expiry
+of the timer.
+
+  when a running timer has negative time-to-go/gone and :action
+  is t:
+
+  * perform action
+  * set action to nil
+
+  when a running or paused timer has time-to-go/gone adjusted
+  from -ve to +ve
+
+  * set action to t
+
+  when a running or paused timer has time-to-go/gone adjusted
+  from +ve to -ve
+
+  * set action to nil
+
+START is the 4 int list creation time of the timer, or nil for
+the 'now' line."
   (list 'chronos-timer
         expiry-time
         message
@@ -245,17 +249,18 @@ expiry is positive, otherwise nil."
   (setf (nth 2 c) msg))
 
 (defun chronos--actionp (c)
-  "Return whether there should be an(other) action from chrono
-  C."
+  "Return whether there should be an(other) action from timer C."
   (nth 3 c))
 
 (defun chronos--set-action (c a)
   "Set whether (A = nil => no, otherwise yes) there should be
-  an(other) action from timer C."
+an(other) action from timer C.  Used to stop multiple action
+triggers when expiry time is reached."
   (setf (nth 3 c) a))
 
 (defun chronos--start-time (c)
-  "Return start time of timer C."
+  "Return start time (usually, current time when timer is
+created) of timer C."
   (nth 4 c))
 
 (defun chronos--set-start-time (c time)
@@ -295,7 +300,7 @@ expire."
      (t nil))))
 
 (defun chronos--seconds-to-expiry (c)
-  "Return a float of seconds until (+ve) or since (-ve) chrono
+  "Return a float of seconds until (+ve) or since (-ve) timer
 C's expected expiry."
   (let ((time (chronos--raw-time c)))
     (cond
@@ -338,14 +343,12 @@ C's expected expiry."
 
 (defun chronos--set-expiry-time (c time)
   "Set timer C to expire at time TIME."
-  (chronos--set-raw-time c
-                         (cond
-                          ((chronos--nowp c)
-                           nil)
-                          ((chronos--runningp c)
-                           time)
-                          ((chronos--pausedp c)
-                           (float-time
+  (chronos--set-raw-time
+   c
+   (cond
+    ((chronos--nowp c)     nil)
+    ((chronos--runningp c) time)
+    ((chronos--pausedp c)  (float-time
                             (time-subtract time
                                            (current-time)))))))
 
@@ -369,7 +372,7 @@ C's expected expiry."
     (funcall chronos-action-function c)))
 
 (defun chronos--time-string-rounded-to-minute (time)
-  "Format TIME rounded to nearest minute"
+  "Format TIME rounded to nearest minute."
   (let ((timelist (decode-time time)))
     (let ((s (car timelist))
           (m (nth 1 timelist))
@@ -411,9 +414,7 @@ C's expected expiry."
           ((chronos--nowp c)     'chronos-now)
           (t                     'chronos-default))))
 
-;; timer notification actions
-
-(defun chronos-modeline-notify (c)
+(defun chronos-message-notify (c)
   "Notify expiration of timer C as a message."
   (message "%s: timer %s has expired"
            (chronos--time-string-rounded-to-minute (chronos--expiry-time c))
@@ -426,7 +427,7 @@ C's expected expiry."
         chronos--notification-list))
 
 (defun chronos-shell-notify (c)
-  "Function to run a shell command to e.g. ring bell"
+  "Function to run a shell command to e.g. ring bell when timer C expires."
   (when (stringp chronos-shell-notify-command)
     (start-process-shell-command "timer default bell"
                                  nil
@@ -443,8 +444,6 @@ C's expected expiry."
                                        " "
                                        (shell-quote-argument
                                         (chronos--message c)))))
-
-;; Display functions
 
 (defun chronos--display-header ()
   "Insert header in display."
@@ -475,7 +474,9 @@ C's expected expiry."
   (let ((notifications-shown nil))
     (newline 3)
     (let ((notification-start-point (point)))
-      (setq fill-prefix (make-string (length chronos-notification-bullet-indent) ?\s)
+      (setq fill-prefix (make-string
+                         (length chronos-notification-bullet-indent)
+                         ?\s)
             fill-column 25)
       (mapc (lambda (n)
               (unless (chronos--notification-expired-p n)
@@ -484,18 +485,19 @@ C's expected expiry."
                   (insert (chronos--format-notification n))
                   (newline))))
             chronos--notification-list)
-      (put-text-property notification-start-point (point) 'face 'chronos-notification)
+      (put-text-property notification-start-point (point)
+                         'face 'chronos-notification)
       (fill-region notification-start-point (point)))
     notifications-shown))
 
 (defun chronos--display-clock ()
   "Insert large current time clock in notification area of display."
   (insert (propertize (chronos--time-string-rounded-to-minute (current-time))
-                        'face 'chronos-notification-clock)))
+                      'face 'chronos-notification-clock)))
 
 ;; ensure that update-display and select-timer remain consistent.
 (defun chronos--update-display ()
-  "Update the list of timers displayed in chronos--buffer."
+  "Update the list of timers displayed in the *chronos* buffer."
   (chronos--sort-by-expiry)
   (with-current-buffer chronos--buffer
     (let* ((inhibit-read-only t)
@@ -529,14 +531,12 @@ C's expected expiry."
   (forward-line))
 
 (defun chronos-previous-line ()
-  "Move the cursor to the next usable line."
+  "Move the cursor to the previous usable line."
   (interactive)
   (if (> (1- (line-number-at-pos))
          chronos-header-length)
       (forward-line -1)
     (forward-line (1- (length chronos--timers-list)))))
-
-;; Time manipulations
 
 (defun chronos--sort-by-expiry ()
   "Sort chronos by seconds to expiry, with longest expired and
@@ -594,8 +594,6 @@ than 60, nor that hours are less than 24."
               (* (if negoffsetp -1 1)
                  (+ s (* 60 m) (* 3600 h))))))))))
 
-;;; Main user functions - add, pause, unpause, modify expiry time, delete
-
 ;;;###autoload
 (defun chronos-add-timer (time msg prefix)
   "Add a timer to expire at time TIME with message MSG.
@@ -638,8 +636,8 @@ timer."
 
 (defun chronos-lap-selected-line ()
   "Pause the selected timer, update the message with lap
-  information and start a new timer continuing the count.  The
-  selected timer must be running.a"
+information and start a new timer continuing the count.  The
+selected timer must be running."
   (interactive)
   (let ((c1 (chronos--select-timer)))
     (when (chronos--runningp c1)

@@ -67,8 +67,10 @@ of another timer, or absolute.
 
 ## absolute time
 
-Start with an =, followed by 24hr clock.  For example, **=17:00** is an expiry
-time of five o'clock in the afternoon.
+Start with an =, followed by a 24+hr clock time.  For example, **=17:00** is an
+expiry time of five o'clock in the afternoon.  Times are for the current day.
+If you want to refer to times tomorrow (i.e. past midnight), add 24 hours:
+e.g. **=25:30** specifies 1:30 tomorrow morning.
 
 ## relative time
 
@@ -134,7 +136,7 @@ to a custom function, perhaps referring to:
 
 - Running a shell command to e.g. ring a bell.  See chronos-shell-notify-command and chronos-shell-notify
 
-- Notifying in the mode line. See chronos-modeline-notify
+- Notifying in the echo area / \*Messages buffer\*. See chronos-message-notify
 
 - Using an external notification daemon, e.g. dunstify.  See chronos-dunstify.
 
