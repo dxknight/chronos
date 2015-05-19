@@ -38,12 +38,7 @@ message.
 
 No configuration is required but you may wish to bind chronos-add-timer, set the
 notification function chronos-action-function and change the faces used in the
-chronos buffer.  In my init file (which uses the excellent use-package) I bind
-the chronos-add-timer command to (C-c t) set notification to be:
-* a bell sound played by mpv
-* an in-buffer temporary message shown in a large (legible from a distance) face chronos-notification
-* notification through dunst, a desktop notification daemon
-
+chronos buffer.  In my init file (which uses the excellent use-package) I have:
 
     (use-package chronos
       :init      (progn
@@ -53,6 +48,11 @@ the chronos-add-timer command to (C-c t) set notification to be:
                                                     (chronos-buffer-notify c)
                                                     (chronos-dunstify c))))
       :bind      ("C-c t" . chronos-add-timer))
+
+This binds the chronos-add-timer command to (C-c t) set notification to be:
+* a bell sound played by mpv
+* an in-buffer temporary message shown in a large (legible from a distance) face chronos-notification
+* notification through dunst, a desktop notification daemon
 
 # Expiry time specification
 
