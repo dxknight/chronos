@@ -16,7 +16,7 @@ countdown and countup timers.
 
 INFO-DIR-SECTION Emacs
 START-INFO-DIR-ENTRY
-* Chronos: Multiple countdown and countup timers.
+* Chronos: (chronos).    Multiple countdown and countup timers.
 END-INFO-DIR-ENTRY
 
 
@@ -864,14 +864,14 @@ permit their use in free software.
 
 
 Tag Table:
-Node: Top771
-Node: Introduction to Chronos1053
-Node: Installation and quick start2212
-Node: Configuration3278
-Node: Controls4639
-Ref: time-spec5069
-Ref: buff-cmds6768
-Node: Notifications11178
-Node: GNU Free Documentation License12561
+Node: Top785
+Node: Introduction to Chronos1067
+Node: Installation and quick start2226
+Node: Configuration3292
+Node: Controls4653
+Ref: time-spec5083
+Ref: buff-cmds6782
+Node: Notifications11192
+Node: GNU Free Documentation License12575
 
 End Tag Table
