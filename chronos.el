@@ -31,25 +31,22 @@
 ;;
 ;;    Expiry      Elapsed      To go  Message                  
 ;;    [17:02]                         --now--
-;;    [17:07]          21       4:51  Coffee
+;;    [17:07]           9       4:51  Coffee
 ;;
-;; Here, a five minute countdown timer was set up 21 seconds ago.  It is
-;; expected to expire in 4 minutes 51 seconds at 17:07.  The time 'now' is
-;; 17:02.
-;;
-;;    Expiry      Elapsed      To go  Message                  
-;;    [17:13]          45         45+ Test run number 3
-;;    [17:13]                         --now--
-;;
-;; Here, a countup timer was started 45 seconds ago to time Test run number 3.
+;; In this example, the time 'now' is 17:02. A five minute countdown
+;; timer was set up 9 seconds ago.  It is expected to expire in 4 minutes
+;; 51 seconds at 17:07.
 ;;
 ;; Installation
 ;;
-;; Put this file somewhere Emacs can find it and (require 'chronos).  Running
-;; M-x chronos-add-timer will initialize chronos if required before it adds the
-;; first timer.
+;; Put this file somewhere Emacs can find it and (require 'chronos).
 ;;
-;; See README.md for more details on installation and usage.
+;; `M-x chronos-add-timer' will start chronos and prompt you to add a timer.
+;; When prompted for the time, enter an integer number of minutes for the timer
+;; to count down from.  When prompted for the message, enter a short description
+;; of the timer for display and notification.
+;;
+;; For more details, see the info manual or website.
 
 ;;; Code:
 
@@ -97,32 +94,48 @@
   "Face for in-buffer clock shown with notifications."
   :group 'chronos)
 
-(defvar chronos-buffer-name "*chronos*"
-  "Buffer name for the chronos buffer")
+(defcustom chronos-buffer-name "*chronos*"
+  "Buffer name for the chronos buffer"
+  :type  'string
+  :group 'chronos)
 
-(defvar chronos-now-message "--now--"
-  "Message to place on the 'now' line")
+(defcustom chronos-now-message "--now--"
+  "Message to place on the 'now' line"
+  :type  'string
+  :group 'chronos)
 
-(defvar chronos-header-text "Expiry      Elapsed      To go  Message                  "
-  "Header text for the chronos buffer")
+(defcustom chronos-header-text "Expiry      Elapsed      To go  Message                  "
+  "Header text for the chronos buffer"
+  :type  'string
+  :group 'chronos)
 
-(defvar chronos-header-length 1
-  "How many lines in the chronos buffer header")
-
-(defvar chronos-action-function nil
+(defcustom chronos-action-function nil
   "A function taking a timer as argument, called when the timer
-  expires.  Nil means no action.")
+  expires.  Nil means no action."
+  :type  '(choice (const :tag "No action" nil)
+                  (function :tag "Function"))
+  :group 'chronos)
 
-(defvar chronos-shell-notify-command nil
+(defcustom chronos-shell-notify-command nil
   "A shell command run when a timer expires to, for example,
-  ring a bell.  Nil means no shell command is run.")
+  ring a bell.  Nil means no shell command is run."
+  :type  '(choice (const :tag "Off" nil)
+                  (string :tag "Shell command"))
+  :group 'chronos)
 
-(defvar chronos-notification-time 15
+(defcustom chronos-notification-time 15
   "How many seconds to show a notification in buffer.  0 means do
-  not show notifications in buffer.")
+  not show notifications in buffer."
+  :type  'integer
+  :group 'chronos)
 
-(defvar chronos-notification-bullet-indent " * "
-  "Text to use to bullet/indent notifications.")
+(defcustom chronos-notification-bullet-indent " * "
+  "Text to use to bullet/indent notifications."
+  :type  'string
+  :group 'chronos)
+
+(defvar chronos--header-lines 1
+  "How many lines in the chronos buffer header")
 
 (defvar chronos--buffer nil
   "The special buffer for displaying timers.")
@@ -136,6 +149,12 @@
 (defvar chronos--update-timer nil
   "A run at time timer for updating the *chronos* buffer with
   chronos--update-display.")
+
+(defvar chronos--frozenp nil
+  "Whether display should be updated as normal (nil) or
+  frozen (t).  With a frozen display, time continues as normal
+  and will be applied - and overdue notifications made - when the
+  display is unfrozen.")
 
 (define-derived-mode chronos-mode special-mode
   "Chronos")
@@ -167,6 +186,7 @@
 (define-key chronos-mode-map (kbd "e")   'chronos-edit-selected-line)
 (define-key chronos-mode-map (kbd "d")   'chronos-delete-selected-line)
 (define-key chronos-mode-map (kbd "l")   'chronos-lap-selected-line)
+(define-key chronos-mode-map (kbd "F")   'chronos-toggle-freeze-display)
 (define-key chronos-mode-map (kbd "D")   'chronos-delete-all-expired)
 (define-key chronos-mode-map (kbd "Q")   'chronos-kill)
 (define-key chronos-mode-map (kbd "n")   'chronos-next-line)
@@ -495,28 +515,33 @@ C's expected expiry."
   (insert (propertize (chronos--time-string-rounded-to-minute (current-time))
                       'face 'chronos-notification-clock)))
 
+(defun chronos-toggle-freeze-display ()
+  (interactive)
+  (setq chronos--frozenp (not chronos--frozenp)))
+
 ;; ensure that update-display and select-timer remain consistent.
 (defun chronos--update-display ()
   "Update the list of timers displayed in the *chronos* buffer."
-  (chronos--sort-by-expiry)
-  (with-current-buffer chronos--buffer
-    (let* ((inhibit-read-only t)
-           (window (get-buffer-window chronos--buffer))
-           (wp (window-point window)))
-      (erase-buffer)
-      (chronos--display-header)
-      (chronos--display-timers)
-      (when
-          (chronos--display-notifications)
-        (chronos--display-clock))
-      (set-window-point window wp))))
+  (unless chronos--frozenp
+    (chronos--sort-by-expiry)
+    (with-current-buffer chronos--buffer
+      (let* ((inhibit-read-only t)
+             (window (get-buffer-window chronos--buffer))
+             (wp (window-point window)))
+        (erase-buffer)
+        (chronos--display-header)
+        (chronos--display-timers)
+        (when
+            (chronos--display-notifications)
+          (chronos--display-clock))
+        (set-window-point window wp)))))
 
 ;; ensure that update-display and select-timer remain consistent.
 (defun chronos--select-timer ()
   "Return the timer shown on the cursor's line, or nil if none
   selected."
   (with-current-buffer chronos--buffer
-    (let ((l (- (line-number-at-pos) 1 chronos-header-length)))
+    (let ((l (- (line-number-at-pos) 1 chronos--header-lines)))
       (if (<= 0 l (1- (length chronos--timers-list)))
           (nth l chronos--timers-list)
         nil))))
@@ -525,7 +550,7 @@ C's expected expiry."
   "Move the cursor to the next usable line."
   (interactive)
   (if (>= (line-number-at-pos)
-          (+ chronos-header-length
+          (+ chronos--header-lines
              (length chronos--timers-list)))
       (forward-line (- (length chronos--timers-list))))
   (forward-line))
@@ -534,7 +559,7 @@ C's expected expiry."
   "Move the cursor to the previous usable line."
   (interactive)
   (if (> (1- (line-number-at-pos))
-         chronos-header-length)
+         chronos--header-lines)
       (forward-line -1)
     (forward-line (1- (length chronos--timers-list)))))
 
