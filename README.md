@@ -177,12 +177,11 @@ expired timers can be deleted with `D`.  Once deleted, they're gone.
 
 ## Editing timers
 
-When editing a timer, you will be prompted for an expiry time
-specification *note expiry time specification: time-spec.  If the edit
-is started with `e`, the new expiry time will be calculated relative
-to the timer's existing expiry time.  If the edit is called with a
-prefix `C-u e`, the new expiry time will be relative to the current
-time.
+When editing a timer, you will be prompted for an expiry time specification like
+used when adding a new timer.  If the edit is started with `e`, the new expiry
+time will be calculated relative to the timer's existing expiry time.  If the
+edit is called with a prefix `C-u e`, the new expiry time will be relative to
+the current time.
 
    You will also be prompted for a message, using the existing
 message as a starting point.
@@ -190,11 +189,14 @@ message as a starting point.
 ## Lap timers
 
 When a timer is lapped by pressing `l`:
-   * The timer is paused, and the time that had elapsed until the timer was
-     lapped.
+   * The timer is paused and the time that had elapsed until the timer was
+     lapped is appended to the message.  If the message does not already include
+     a lap number, <1> is inserted in the message.
 
    * A new timer with the message <n+1> is run continuing on from the one just
      lapped.
+
+### Lap example
 
    For example, a countup timer was set with Time:0 and Message:Lap
 timer example.
@@ -221,15 +223,15 @@ four laps took 23 seconds.
 
 ## Freezing the display
 
-Freezing the display with `F` prevents any updates to the *chronos*
+Freezing the display with `F` prevents any updates to the \*chronos\*
 buffer or triggering of expiry actions, but does not stop the timers
-running.  Unfreezing the display updates the *chronos* buffer to
+running.  Unfreezing the display updates the \*chronos\* buffer to
 current values and triggers all outstanding actions.
 
 ## Quitting, Killing and restarting
 
-Quitting with `q` buries the *chronos* buffer, but timers continue to
-run.  Switch back to the *chronos* buffer when required.
+Quitting with `q` buries the \*chronos\* buffer, but timers continue to
+run.  Switch back to the \*chronos\* buffer when required.
 
    Killing with `Q` deletes any timers (after user confirmation) and closes the
 buffer.  To restart after a kill, use `chronos-add-timer`.
@@ -244,7 +246,16 @@ actions can be set for when a timer expires by setting
 a timer as an argument, which can be used to get e.g. the timer's
 message.
 
-   For examples, see:
+Countup timers (those started with 0 time to expire) do not
+trigger these notifications, although they are highlit with the
+`chronos-expired` face.
+
+   If an unexpired timer is edited so that its expiry time is now in
+the past, no notification will be triggered.  Conversely, adjusting
+an expired timer so that its expiry time is now in the future will
+trigger any notifications when the timer expires.
+
+   For examples of notification actions, see:
 
    * A temporary notification in the chronos buffer, shown in the
      `chronos-notification` face for `chronos-notification-time`
@@ -259,12 +270,5 @@ message.
    * Using an external notification daemon, e.g. dunstify.  See
      `chronos-dunstify`.
 
-   Countup timers (those started with 0 time to expire) do not
-trigger these notifications, although they are highlit with the
-`chronos-expired` face.
-
-   If an unexpired timer is edited so that its expiry time is now in
-the past, no notification will be triggered.  Conversely, adjusting
-an expired timer so that its expiry time is now in the future will
-trigger any notifications when the timer expires.
+   
 
