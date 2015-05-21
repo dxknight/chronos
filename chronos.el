@@ -404,10 +404,10 @@ C's expected expiry."
   blanks replacing leading 0s and :s, and a trailing + for
   negative seconds."
   (let* ((neg (if (> 0 seconds) "+" " "))
-         (seconds (abs seconds))
+         (seconds (abs (round seconds)))
          (h (floor seconds 3600))
          (m (floor (- seconds (* h 3600)) 60))
-         (s (round (- seconds (* h 3600) (* m 60)))))
+         (s (floor (- seconds (* h 3600) (* m 60)))))
     (cond
      ((and (zerop h)
            (zerop m)
