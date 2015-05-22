@@ -36,6 +36,15 @@ Possible use cases include:
 
 Put chronos.el somewhere Emacs can find it and run `(require 'chronos)`.
 
+Alternatively:
+* if you have set up access to MELPA http://melpa.org/#/getting-started, you can
+install using `M-x package-install chronos`.
+* if you have MELPA and `use-package` https://github.com/jwiegley/use-package,
+  you can install by evaluating `(use-package chronos :ensure t)`, and adding
+  that snippet to your init file if you want chronos for future sessions.
+
+## Quick start
+
 `M-x chronos-add-timer` will start chronos and prompt you to add a timer.  When
 prompted for the time, enter an integer number of minutes for the timer to count
 down from (see later for more sophisticated options).  When prompted for the
