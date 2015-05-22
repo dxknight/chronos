@@ -136,7 +136,6 @@ buffer are:
 <tr><td>l  </td><td>lap selected timer</td></tr>
 <tr><td>F  </td><td>freeze/unfreeze the display</td></tr>
 <tr><td>q  </td><td>quit window</td></tr>
-<tr><td>Q  </td><td>prompt if any timers exist, kill the chronos buffer and clean up</td></tr>
 </table>
 
 Whether relative times are against current time or the expiry time of the
@@ -233,8 +232,9 @@ current values and triggers all outstanding actions.
 Quitting with `q` buries the \*chronos\* buffer, but timers continue to
 run.  Switch back to the \*chronos\* buffer when required.
 
-   Killing with `Q` deletes any timers (after user confirmation) and closes the
-buffer.  To restart after a kill, use `chronos-add-timer`.
+Killing the \*chronos\* buffer in the usual way (typically `C-x k`) deletes any
+timers (after user confirmation) and closes the buffer.  To restart after a
+kill, use `chronos-add-timer`.
 
 
 # Notifications

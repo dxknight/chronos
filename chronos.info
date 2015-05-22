@@ -1,5 +1,5 @@
 This is chronos.info, produced by makeinfo version 4.13 from
-/home/main/wip/projects/chronos/chronos.texi.
+/mnt/share/wip/projects/chronos/chronos.texi.
 
 This manual is for Chronos v1, an Emacs package providing multiple
 countdown and countup timers.
@@ -225,7 +225,6 @@ buffer are:
      l    lap selected timer
      F    freeze/unfreeze the display
      q    quit window
-     Q    prompt if any timers exist, kill the chronos buffer and clean up
 
    Whether relative times are against current time or the expiry time
 of the selected timer is controlled by the prefix.
@@ -327,9 +326,10 @@ current values and triggers all outstanding actions.
 Quitting with `q' buries the *chronos* buffer, but timers continue to
 run.  Switch back to the *chronos* buffer when required.
 
-   Killing with `Q' checks for running timers and, on confirmation
-from the user, deletes all timers and closes the buffer.  To restart
-after a kill, use `chronos-add-timer'.
+   Killing the *chronos* buffer in the usual away (typically `C-x k')
+checks for running timers and, on confirmation from the user, deletes
+all timers and closes the buffer.  To restart after a kill, use
+`chronos-add-timer'.
 
 
 File: chronos.info,  Node: Notifications,  Next: GNU Free Documentation License,  Prev: Controls,  Up: Top
@@ -871,7 +871,7 @@ Node: Configuration3292
 Node: Controls4653
 Ref: time-spec5083
 Ref: buff-cmds6782
-Node: Notifications11192
-Node: GNU Free Documentation License12575
+Node: Notifications11167
+Node: GNU Free Documentation License12550
 
 End Tag Table

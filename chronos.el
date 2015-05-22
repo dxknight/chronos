@@ -167,15 +167,22 @@
         chronos--notification-list nil
         chronos--update-timer (run-at-time t 1 'chronos--update-display))
   (switch-to-buffer chronos--buffer)
+  (add-to-list 'kill-buffer-query-functions 'chronos--kill-buffer-query)
+  (add-hook 'kill-buffer-hook 'chronos--cleanup)
   (chronos-mode))
 
-(defun chronos-kill ()
+(defun chronos--kill-buffer-query ()
+  "Return t if not a *chronos* buffer, or there are no timers
+running or the user is ok with killing the buffer."
+  (or (not (string= (buffer-name) chronos-buffer-name))
+      (< (length chronos--timers-list) 2)
+      (y-or-n-p "Chronos are still running.  Do you really want to quit? ")))
+
+(defun chronos--cleanup ()
   "Clean up and kill chronos."
-  (interactive)
-  (when (or (< (length chronos--timers-list) 2)
-            (y-or-n-p "Chronos are still running.  Do you really want to quit?"))
-    (cancel-timer chronos--update-timer)
-    (kill-buffer chronos--buffer)
+  (when (string= (buffer-name) chronos-buffer-name)
+    (when (timerp chronos--update-timer)
+      (cancel-timer chronos--update-timer))
     (setq chronos--timers-list nil
           chronos--notification-list nil
           chronos--update-timer nil
@@ -188,7 +195,6 @@
 (define-key chronos-mode-map (kbd "l")   'chronos-lap-selected-line)
 (define-key chronos-mode-map (kbd "F")   'chronos-toggle-freeze-display)
 (define-key chronos-mode-map (kbd "D")   'chronos-delete-all-expired)
-(define-key chronos-mode-map (kbd "Q")   'chronos-kill)
 (define-key chronos-mode-map (kbd "n")   'chronos-next-line)
 (define-key chronos-mode-map (kbd "p")   'chronos-previous-line)
 
@@ -522,19 +528,20 @@ C's expected expiry."
 ;; ensure that update-display and select-timer remain consistent.
 (defun chronos--update-display ()
   "Update the list of timers displayed in the *chronos* buffer."
-  (unless chronos--frozenp
-    (chronos--sort-by-expiry)
-    (with-current-buffer chronos--buffer
-      (let* ((inhibit-read-only t)
-             (window (get-buffer-window chronos--buffer))
-             (wp (window-point window)))
-        (erase-buffer)
-        (chronos--display-header)
-        (chronos--display-timers)
-        (when
-            (chronos--display-notifications)
-          (chronos--display-clock))
-        (set-window-point window wp)))))
+  (when (buffer-live-p chronos--buffer)
+    (unless chronos--frozenp
+      (chronos--sort-by-expiry)
+      (with-current-buffer chronos--buffer
+        (let* ((inhibit-read-only t)
+               (window (get-buffer-window chronos--buffer))
+               (wp (window-point window)))
+          (erase-buffer)
+          (chronos--display-header)
+          (chronos--display-timers)
+          (when
+              (chronos--display-notifications)
+            (chronos--display-clock))
+          (set-window-point window wp))))))
 
 ;; ensure that update-display and select-timer remain consistent.
 (defun chronos--select-timer ()
