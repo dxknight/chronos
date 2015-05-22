@@ -234,7 +234,7 @@ run.  Switch back to the \*chronos\* buffer when required.
 
 Killing the \*chronos\* buffer in the usual way (typically `C-x k`) deletes any
 timers (after user confirmation) and closes the buffer.  To restart after a
-kill, use `chronos-add-timer`.
+kill, use `M-x chronos-add-timer`.
 
 
 # Notifications

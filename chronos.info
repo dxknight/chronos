@@ -84,6 +84,15 @@ File: chronos.info,  Node: Installation and quick start,  Next: Configuration,  
 Put chronos.el somewhere Emacs can find it and run `(require
 'chronos)'.
 
+   Alternatively, if you have set up:
+   * MELPA http://melpa.org/#/getting-started, you can install using
+     `M-x package-install chronos'.
+
+   * MELPA and `use-package' https://github.com/jwiegley/use-package,
+     you can install by evaluating `(use-package chronos :ensure t)',
+     and adding that snippet to your init file if you want chronos
+     for future sessions.
+
    No configuration is required, but see *note Configuration::.
 
 2.1.1 Dependencies
@@ -328,8 +337,8 @@ run.  Switch back to the *chronos* buffer when required.
 
    Killing the *chronos* buffer in the usual away (typically `C-x k')
 checks for running timers and, on confirmation from the user, deletes
-all timers and closes the buffer.  To restart after a kill, use
-`chronos-add-timer'.
+all timers and closes the buffer.  To restart after a kill, use `M-x
+chronos-add-timer'.
 
 
 File: chronos.info,  Node: Notifications,  Next: GNU Free Documentation License,  Prev: Controls,  Up: Top
@@ -867,11 +876,11 @@ Tag Table:
 Node: Top785
 Node: Introduction to Chronos1067
 Node: Installation and quick start2226
-Node: Configuration3292
-Node: Controls4653
-Ref: time-spec5083
-Ref: buff-cmds6782
-Node: Notifications11167
-Node: GNU Free Documentation License12550
+Node: Configuration3670
+Node: Controls5031
+Ref: time-spec5461
+Ref: buff-cmds7160
+Node: Notifications11549
+Node: GNU Free Documentation License12932
 
 End Tag Table
