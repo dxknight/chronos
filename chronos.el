@@ -51,7 +51,7 @@
 ;;; Code:
 
 (defgroup chronos nil
-  "Chronos' customization group"
+  "Chronos' customization group."
   :group 'calendar)
 
 (defface chronos-default
@@ -176,7 +176,7 @@
 running or the user is ok with killing the buffer."
   (or (not (string= (buffer-name) chronos-buffer-name))
       (< (length chronos--timers-list) 2)
-      (y-or-n-p "Chronos are still running.  Do you really want to quit? ")))
+      (y-or-n-p "Timers are still running.  Do you really want to quit? ")))
 
 (defun chronos--cleanup ()
   "Clean up and kill chronos."

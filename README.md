@@ -1,5 +1,8 @@
 # Chronos
 
+[![MELPA](http://melpa.org/packages/chronos-badge.svg)](http://melpa.org/#/chronos)
+[![GPL3](https://img.shields.io/badge/license-GPLv3-blue.svg)](http://www.gnu.org/licenses/quick-guide-gplv3.en.html)
+
 Chronos provides multiple countdown / countup timers, updated every
 second, shown sorted by expiry time in the special buffer \*chronos\*.
 
@@ -70,6 +73,7 @@ chronos buffer.  In my init file (which uses the excellent
 use-package) I have:
 
     (use-package chronos
+      :ensure    t
       :init      (progn
                    (setq chronos-shell-notify-command "mpv --really-quiet --af=scaletempo=speed=pitch --speed=0.65 ~/wip/progs/cdt/temple-bell-zen.mp3")
                    (setq chronos-action-function '(lambda (c)
@@ -135,17 +139,17 @@ In the \*chronos\* buffer, new timers can be added, selected, paused,
 unpaused, lapped, adjusted or deleted.  Default keybindings in this
 buffer are:
 
-<table>
-<tr><td>a  </td><td>add a timer</td></tr>
-<tr><td>n/p</td><td>move selection down/up</td></tr>
-<tr><td>SPC</td><td>pause/unpause (pausing affects time to go and the expiry time, but not elapsed time)</td></tr>
-<tr><td>d  </td><td>delete selected timer</td></tr>
-<tr><td>D  </td><td>delete all expired timers</td></tr>
-<tr><td>e  </td><td>edit selected timer</td></tr>
-<tr><td>l  </td><td>lap selected timer</td></tr>
-<tr><td>F  </td><td>freeze/unfreeze the display</td></tr>
-<tr><td>q  </td><td>quit window</td></tr>
-</table>
+Key | Action
+--- | ------------------------------------------------------------------------------------
+a   | add a timer
+n/p | move selection down/up
+SPC | pause/unpause (pausing affects time to go and the expiry time, but not elapsed time)
+d   | delete selected timer
+D   | delete all expired timers
+e   | edit selected timer
+l   | lap selected timer
+F   | freeze/unfreeze the display
+q   | quit window
 
 Whether relative times are against current time or the expiry time of the
 selected timer is controlled by the prefix.
