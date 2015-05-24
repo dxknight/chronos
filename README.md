@@ -3,6 +3,21 @@
 [![MELPA](http://melpa.org/packages/chronos-badge.svg)](http://melpa.org/#/chronos)
 [![GPL3](https://img.shields.io/badge/license-GPLv3-blue.svg)](http://www.gnu.org/licenses/quick-guide-gplv3.en.html)
 
+## Whats New
+
+Version 1.1 (Internal) has extra configuration options and a revamped
+notification system using the hook `chronos-expiry-functions`.
+
+If you are upgrading from v1.0, you might need to change your configurations if you referred to `chronos-shell-notify-command` (which has been split into `chronos-shell-notify-program` and a list of strings `chronos-shell-notify-parameters`) or `chronos-action-function` (which has become the hook `chronos-expiry-functions`).
+
+Also, new notification methods have been added to:
+
+* Play a wav file with Emacs' built in play-sound (requires Emacs to be built with sound support).
+* Send a desktop notification (requires Emacs built with libnotify plus a system with dbus, consolekit and a notification daemon).
+* Tell you when and what expired using a text to speech program (requires a program like espeak).
+
+## Introduction
+
 Chronos provides multiple countdown / countup timers, updated every
 second, shown sorted by expiry time in the special buffer \*chronos\*.
 
@@ -37,14 +52,27 @@ Possible use cases include:
 
 # Installation
 
-Put chronos.el somewhere Emacs can find it and run `(require 'chronos)`.
+## Old school
 
-Alternatively:
-* if you have set up access to MELPA http://melpa.org/#/getting-started, you can
-install using `M-x package-install chronos`.
-* if you have MELPA and `use-package` https://github.com/jwiegley/use-package,
-  you can install by evaluating `(use-package chronos :ensure t)`, and adding
-  that snippet to your init file if you want chronos for future sessions.
+Put `chronos.el` somewhere Emacs can find it and evaluate:
+
+     (require 'chronos)
+
+## MELPA
+
+If you have set up access to MELPA http://melpa.org/#/getting-started, you can
+install using:
+
+     M-x package-install chronos
+
+## MELPA/use-package
+
+If you have MELPA and `use-package` https://github.com/jwiegley/use-package,
+you can install by evaluating:
+
+     (use-package chronos :ensure t)
+
+Adding that snippet to your init file if you want chronos for future sessions.
 
 ## Quick start
 
@@ -57,36 +85,23 @@ message, enter a short description of the timer for display and notification.
 
 Chronos should work on a stock Emacs install.
 
-   When a timer expires, a function `chronos-action-function' is run
-with the expired timer as the argument.  If desired, this function can
-be used to call external programs, for example to sound an alarm or
-pop up a notification.
+When a timer expires, various functions can be run to notify the user.  Some of
+these can require particular builds of Emacs or system features.  See the
+notifications section later.
+
+## Enhancements
+
+There is a helm interface for conveniently adding timers, `helm-chronos`.
+
+See https://github.com/dxknight/helm-chronos
 
 # Configuration
 
 No configuration is required, but the defaults can be customized with
 `M-x customize-group` chronos or set in your init file.
 
-   You may wish to bind `chronos-add-timer`, set the notification
-function `chronos-action-function` and change the faces used in the
-chronos buffer.  In my init file (which uses the excellent
-use-package) I have:
-
-    (use-package chronos
-      :ensure    t
-      :init      (progn
-                   (setq chronos-shell-notify-command "mpv --really-quiet --af=scaletempo=speed=pitch --speed=0.65 ~/wip/progs/cdt/temple-bell-zen.mp3")
-                   (setq chronos-action-function '(lambda (c)
-                                                    (chronos-shell-notify c)
-                                                    (chronos-buffer-notify c)
-                                                    (chronos-dunstify c))))
-      :bind      ("C-c t" . chronos-add-timer))
-
-This binds the `chronos-add-timer` command to `C-c t` and sets
-notification to be:
-* a bell sound played by mpv;
-* an in-buffer temporary message shown in a large (legible from a distance) face `chronos-notification`;
-* notification through dunst, a desktop notification daemon.
+You may wish to bind `chronos-add-timer`, set the notification functions and
+change the faces used in the chronos buffer.
 
 # Expiry time specification
 
@@ -254,10 +269,8 @@ kill, use `M-x chronos-add-timer`.
 
 By default, expired timers are shown above the -now- line, highlit
 with the `chronos-expired` face, until they are deleted.  Additional
-actions can be set for when a timer expires by setting
-`chronos-action-function` to a custom function.  This function takes
-a timer as an argument, which can be used to get e.g. the timer's
-message.
+actions can be set for when a timer expires by adding functions to the hook
+`chronos-expiry-functions`.
 
 Countup timers (those started with 0 time to expire) do not
 trigger these notifications, although they are highlit with the
@@ -268,20 +281,42 @@ the past, no notification will be triggered.  Conversely, adjusting
 an expired timer so that its expiry time is now in the future will
 trigger any notifications when the timer expires.
 
-   For examples of notification actions, see:
+## chronos-expiry-functions
 
-   * A temporary notification in the chronos buffer, shown in the
-     `chronos-notification` face for `chronos-notification-time`
-     seconds. See `chronos-buffer-notify`.
+The hook `chronos-expiry-functions` is empty by default so it can be set
+directly as a list of functions, or `add-hook` can be used to add functions to
+it in the standard way.
 
-   * Running a shell command to e.g. ring a bell.  See
-     `chronos-shell-notify-command` and `chronos-shell-notify`.
+This hook is "abnormal", in that all functions added must take an argument, the expired timer.
 
-   * Notifying in the echo area / \*Messages\* buffer. See
-     `chronos-message-notify`.
+Standard functions available are:
 
-   * Using an external notification daemon, e.g. dunstify.  See
-     `chronos-dunstify`.
+Function | Action
+---------|------------------
+chronos-message-notify | Issues a message to the echo area and \*Messages\* buffer
+chronos-sound-notify   | Plays `chronos-notification-wav` (if Emacs compiled with sound support and the specified wav file exists).
+chronos-desktop-notifications-notify | Sends a desktop notification (if Emacs compiled with libnotify support and running in a dbus / consolekit / notification environment).
+chronos-buffer-notify |  Displays MESSAGE in the chronos buffer, in the`chronos-notification` face for `chronos-notification-time` seconds.
+chronos-shell-notify  | Runs `chronos-shell-notify-program` (if it exists) with parameters `chronos-shell-notify-parameters`.
+chronos-dunstify      | Uses the `dunst` notification daemon (does not require libnotify support or dbus/consolekit).
+chronos-text-to-speech-notify | Uses `chronos-text-to-speech-program` (such as espeak) with `chronos-text-to-speech-program-parameters` to speak the expiry time and message.
 
+For example, in my init file I have:
+
+    (setq chronos-shell-notify-program "mpv"
+          chronos-shell-notify-parameters '("--really-quiet"
+                                            "--af=scaletempo=speed=pitch"
+                                            "--speed=0.65"
+                                            "~/wip/progs/cdt/temple-bell-zen.mp3")
+          chronos-text-to-speech-program "espeak"
+          chronos-text-to-speech-program-parameters "-s 100"
+          chronos-expiry-functions '(chronos-dunstify
+                                     chronos-buffer-notify
+                                     chronos-shell-notify
+                                     chronos-text-to-speech-notify))
    
 
+This sets the notification sequence to pop up a dunst notification, put the
+message in the \*chronos\* buffer in big text, run `mpv` in the shell with
+various parameters to give a slowed down temple bell and then speak the time and
+message with `espeak`.

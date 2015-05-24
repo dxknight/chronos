@@ -4,8 +4,8 @@
 
 ;; Author: David Knight <dxknight@opmbx.org>
 ;; Created: 12 May 2015
-;; Package-Version: 1.0
-;; Version: 1.0
+;; Package-Version: 1.1
+;; Version: 1.1
 ;; Keywords: calendar
 ;; URL: http://github.com/dxknight/chronos
 
@@ -50,49 +50,59 @@
 
 ;;; Code:
 
+(require 'notifications)
+
 (defgroup chronos nil
   "Chronos' customization group."
   :group 'calendar)
 
+(defgroup chronos-faces nil
+  "Chronos' face customization subgroup."
+  :group 'chronos)
+
+(defgroup chronos-notifications nil
+  "Chronos' notifications customization subgroup."
+  :group 'chronos)
+
 (defface chronos-default
   '((t (:inherit default)))
   "Basic face for chrono display."
-  :group 'chronos)
+  :group 'chronos-faces)
 
 (defface chronos-now
   '((t (:inherit bold)))
   "Face for showing the current time."
-  :group 'chronos)
+  :group 'chronos-faces)
 
 (defface chronos-selected
   '((t (:inherit highlight)))
   "Face for selected timer."
-  :group 'chronos)
+  :group 'chronos-faces)
 
 (defface chronos-expired
   '((t (:inherit warning)))
   "Face for expired (counted down to zero, now counting how long ago) timers."
-  :group 'chronos)
+  :group 'chronos-faces)
 
 (defface chronos-paused
   '((t (:inherit shadow)))
   "Face for paused timers."
-  :group 'chronos)
+  :group 'chronos-faces)
 
 (defface chronos-header
   '((t (:inherit underline :weight bold)))
   "Face for the header line."
-  :group 'chronos)
+  :group 'chronos-faces)
 
 (defface chronos-notification
   '((t (:inherit warning :height 8.0)))
   "Face for in-buffer notifications."
-  :group 'chronos)
+  :group 'chronos-faces)
 
 (defface chronos-notification-clock
   '((t (:inherit bold :height 10.0)))
   "Face for in-buffer clock shown with notifications."
-  :group 'chronos)
+  :group 'chronos-faces)
 
 (defcustom chronos-buffer-name "*chronos*"
   "Buffer name for the chronos buffer"
@@ -109,30 +119,65 @@
   :type  'string
   :group 'chronos)
 
-(defcustom chronos-action-function nil
-  "A function taking a timer as argument, called when the timer
-  expires.  Nil means no action."
-  :type  '(choice (const :tag "No action" nil)
-                  (function :tag "Function"))
-  :group 'chronos)
+(defcustom chronos-expiry-functions nil
+  "A hook for functions to run when a timer expires, usually to 
+inform the user of its expiry.
 
-(defcustom chronos-shell-notify-command nil
+`Chronos-expiry-functions' is an abnormal hook; all functions
+must accept one argument, the expired timer."
+  :type  '(repeat function)
+  :group 'chronos-notifications)
+
+(defcustom chronos-desktop-notifications-urgency 'critical
+  "The urgency of expiry notifications."
+  :type  '(choice (const :tag "Low" low)
+                 (const :tag "Normal" normal)
+                 (const :tag "Critical" critical))
+  :group 'chronos-notifications)
+
+(defcustom chronos-shell-notify-program ""
   "A shell command run when a timer expires to, for example,
-  ring a bell.  Nil means no shell command is run."
-  :type  '(choice (const :tag "Off" nil)
-                  (string :tag "Shell command"))
-  :group 'chronos)
+  ring a bell.  Empty string is no program."
+  :type  '(choice (const :tag "None" "")
+                  (string :tag "Program"))
+  :group 'chronos-notifications)
+
+(defcustom chronos-shell-notify-parameters ""
+  "A string or list of strings with parameters for the shell notify command"
+  :type  '(choice (string)
+                  (repeat string))
+  :group 'chronos-notifications)
 
 (defcustom chronos-notification-time 15
   "How many seconds to show a notification in buffer.  0 means do
-  not show notifications in buffer."
+not show notifications in buffer."
   :type  'integer
-  :group 'chronos)
+  :group 'chronos-notifications)
 
 (defcustom chronos-notification-bullet-indent " * "
   "Text to use to bullet/indent notifications."
   :type  'string
-  :group 'chronos)
+  :group 'chronos-notifications)
+
+(defcustom chronos-notification-wav nil
+  "Wav file to play for notification using play-sound.  Nil is no
+wav used."
+  :type  '(choice (const :tag "None" nil)
+                  (file :tag "Wav file"))
+  :group 'chronos-notifications)
+
+(defcustom chronos-text-to-speech-program ""
+  "Program to speak text for notification.  Empty string is no program."
+  :type  '(choice (const :tag "None" "")
+                  (file :tag "Text to speech program"))
+  :group 'chronos-notifications)
+
+(defcustom chronos-text-to-speech-program-parameters ""
+  "A string or list of strings with additional parameters for
+text to speech program."
+  :type  '(choice (string)
+                  (repeat string))
+  :group 'chronos-notifications)
 
 (defvar chronos--header-lines 1
   "How many lines in the chronos buffer header")
@@ -388,15 +433,6 @@ C's expected expiry."
                                      (current-time)))
     ((chronos--pausedp c)  secs))))
 
-(defun chronos--check-to-call-action-function (c)
-  "Funcall chronos-action-function if required by timer C expiring."
-  (when (and chronos-action-function
-             (chronos--actionp c)
-             (chronos--runningp c)
-             (chronos--expiredp c))
-    (chronos--set-action c nil)
-    (funcall chronos-action-function c)))
-
 (defun chronos--time-string-rounded-to-minute (time)
   "Format TIME rounded to nearest minute."
   (let ((timelist (decode-time time)))
@@ -404,6 +440,10 @@ C's expected expiry."
           (m (nth 1 timelist))
           (h (nth 2 timelist)))
       (format "%02d:%02d" h (if (> s 30) (1+ m) m)))))
+
+(defun chronos--time-string (c)
+  "Format time rounded to nearest minute for timer c."
+  (chronos--time-string-rounded-to-minute (chronos--expiry-time c)))
 
 (defun chronos--format-seconds (seconds)
   "Format SECONDS as H:M:S, rounded to nearest second, with
@@ -440,36 +480,75 @@ C's expected expiry."
           ((chronos--nowp c)     'chronos-now)
           (t                     'chronos-default))))
 
+(defun chronos--check-for-expiry (c)
+  "Call `chronos-expiry-functions' hook if required by timer C expiring."
+  (when (and chronos-expiry-functions
+             (chronos--actionp c)
+             (chronos--runningp c)
+             (chronos--expiredp c))
+    (chronos--set-action c nil)
+    (run-hook-with-args 'chronos-expiry-functions c)))
+
 (defun chronos-message-notify (c)
-  "Notify expiration of timer C as a message."
-  (message "%s: timer %s has expired"
-           (chronos--time-string-rounded-to-minute (chronos--expiry-time c))
+  "Notify expiration of timer C in the echo area and `*Messages*'
+buffer."
+  (message "Chronos: %s %s"
+           (chronos--time-string c)
            (chronos--message c)))
+
+(defun chronos-sound-notify (c)
+  "Notify expiration of timer C by playing a wav sound file."
+  (play-sound `(sound :file ,chronos-notification-wav)))
+
+(defun chronos-desktop-notifications-notify (c)
+  "Notify expiration of timer C using desktop notifications built in."
+  (notifications-notify :urgency chronos-desktop-notifications-urgency
+                          :title   (chronos--time-string c)
+                          :body    (chronos--message c)))
 
 (defun chronos-buffer-notify (c)
   "Notify expiration of timer C in the notification area of the
   *chronos* buffer."
-  (push (list (current-time) (chronos--message c))
+  (push (list (chronos--expiry-time c)
+              (chronos--message c))
         chronos--notification-list))
 
-(defun chronos-shell-notify (c)
-  "Function to run a shell command to e.g. ring bell when timer C expires."
-  (when (stringp chronos-shell-notify-command)
-    (start-process-shell-command "timer default bell"
+(defun chronos--ensure-list (p)
+  "Ensure that P is a list if it is not already."
+  (if (listp p) p (list p)))
+
+(defun chronos--shell-command (name cmd parms)
+  "Run shell command CMD if it exists, with parameter or
+  parameter list PARMS.  Process is called NAME."
+  (when (executable-find cmd)
+    (start-process-shell-command name
                                  nil
-                                 chronos-shell-notify-command)))
+                                 (combine-and-quote-strings
+                                  (cons cmd
+                                        (chronos--ensure-list parms))))))
+
+(defun chronos-shell-notify (c)
+  "Notify expiration of timer C by running a shell command."
+  (chronos--shell-command "Chronos shell notification"
+                         chronos-shell-notify-program
+                         chronos-shell-notify-parameters))
 
 (defun chronos-dunstify (c)
-  "Function to use dunstify to notify of timer C's expiry."
-  (start-process-shell-command "Chronos dunstify notification"
-                               nil
-                               (concat "dunstify -u critical "
-                                       (shell-quote-argument
-                                        (chronos--time-string-rounded-to-minute
-                                         (chronos--expiry-time c)))
-                                       " "
-                                       (shell-quote-argument
-                                        (chronos--message c)))))
+  "Notify expiration of timer C using dunstify."
+  (chronos--shell-command "Chronos dunstify notification"
+                            "dunstify"
+                            (list "-u" (symbol-name chronos-desktop-notifications-urgency)
+                                  (chronos--time-string c)
+                                  (chronos--message c))))
+
+(defun chronos-text-to-speech-notify (c)
+  "Notify expiration of timer C by text-to-speech."
+  (chronos--shell-command "Chronos text-to-speech notification"
+                            chronos-text-to-speech-program
+                            (append (chronos--ensure-list chronos-text-to-speech-program-parameters)
+                                    (list (concat (chronos--time-string c)
+                                                  " "
+                                                  (chronos--message c))))))
 
 (defun chronos--display-header ()
   "Insert header in display."
@@ -478,9 +557,9 @@ C's expected expiry."
 
 (defun chronos--display-timers ()
   "Insert timers in display."
-  (mapc (lambda (timer)
-          (chronos--check-to-call-action-function timer)
-          (insert (chronos--format-timer timer))
+  (mapc (lambda (c)
+          (chronos--check-for-expiry c)
+          (insert (chronos--format-timer c))
           (newline))
         chronos--timers-list))
 
@@ -528,20 +607,20 @@ C's expected expiry."
 ;; ensure that update-display and select-timer remain consistent.
 (defun chronos--update-display ()
   "Update the list of timers displayed in the *chronos* buffer."
-  (when (buffer-live-p chronos--buffer)
-    (unless chronos--frozenp
-      (chronos--sort-by-expiry)
-      (with-current-buffer chronos--buffer
-        (let* ((inhibit-read-only t)
-               (window (get-buffer-window chronos--buffer))
-               (wp (window-point window)))
-          (erase-buffer)
-          (chronos--display-header)
-          (chronos--display-timers)
-          (when
-              (chronos--display-notifications)
-            (chronos--display-clock))
-          (set-window-point window wp))))))
+  (when (and (buffer-live-p chronos--buffer)
+             (not chronos--frozenp))
+    (chronos--sort-by-expiry)
+    (with-current-buffer chronos--buffer
+      (let* ((inhibit-read-only t)
+             (window (get-buffer-window chronos--buffer))
+             (wp (window-point window)))
+        (erase-buffer)
+        (chronos--display-header)
+        (chronos--display-timers)
+        (when
+            (chronos--display-notifications)
+          (chronos--display-clock))
+        (set-window-point window wp)))))
 
 ;; ensure that update-display and select-timer remain consistent.
 (defun chronos--select-timer ()
@@ -729,3 +808,5 @@ prefix the adjustment is relative to the current time."
 (provide 'chronos)
 
 ;;; chronos.el ends here
+
+
