@@ -72,7 +72,7 @@ you can install by evaluating:
 
      (use-package chronos :ensure t)
 
-Adding that snippet to your init file if you want chronos for future sessions.
+Add that snippet to your init file if you want chronos for future sessions.
 
 ## Quick start
 
@@ -287,7 +287,7 @@ The hook `chronos-expiry-functions` is empty by default so it can be set
 directly as a list of functions, or `add-hook` can be used to add functions to
 it in the standard way.
 
-This hook is "abnormal", in that all functions added must take an argument, the expired timer.
+This hook is "abnormal", in that all functions added must take an argument: the expired timer.
 
 Standard functions available are:
 
@@ -296,9 +296,9 @@ Function | Action
 chronos-message-notify | Issues a message to the echo area and \*Messages\* buffer
 chronos-sound-notify   | Plays `chronos-notification-wav` (if Emacs compiled with sound support and the specified wav file exists).
 chronos-desktop-notifications-notify | Sends a desktop notification (if Emacs compiled with libnotify support and running in a dbus / consolekit / notification environment).
-chronos-buffer-notify |  Displays MESSAGE in the chronos buffer, in the`chronos-notification` face for `chronos-notification-time` seconds.
+chronos-buffer-notify |  Displays the timer's message in the \*chronos\* buffer, in the`chronos-notification` face for `chronos-notification-time` seconds.
 chronos-shell-notify  | Runs `chronos-shell-notify-program` (if it exists) with parameters `chronos-shell-notify-parameters`.
-chronos-dunstify      | Uses the `dunst` notification daemon (does not require libnotify support or dbus/consolekit).
+chronos-dunstify      | Uses the `dunst` notification daemon (requires dunst and dbus but not consolekit).
 chronos-text-to-speech-notify | Uses `chronos-text-to-speech-program` (such as espeak) with `chronos-text-to-speech-program-parameters` to speak the expiry time and message.
 
 For example, in my init file I have:

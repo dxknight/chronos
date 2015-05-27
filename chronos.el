@@ -159,6 +159,10 @@ not show notifications in buffer."
   :type  'string
   :group 'chronos-notifications)
 
+(defcustom chronos-notification-fill-column 25
+  "Column for filling notifications.  Will depend on notification
+  face and window width.")
+
 (defcustom chronos-notification-wav nil
   "Wav file to play for notification using play-sound.  Nil is no
 wav used."
@@ -582,7 +586,7 @@ buffer."
       (setq fill-prefix (make-string
                          (length chronos-notification-bullet-indent)
                          ?\s)
-            fill-column 25)
+            fill-column chronos-notification-fill-column)
       (mapc (lambda (n)
               (unless (chronos--notification-expired-p n)
                 (setq notifications-shown t)
