@@ -1,7 +1,7 @@
 This is chronos.info, produced by makeinfo version 4.13 from
 /mnt/share/wip/projects/chronos/chronos.texi.
 
-This manual is for Chronos v1, an Emacs package providing multiple
+This manual is for Chronos v1.2, an Emacs package providing multiple
 countdown and countup timers.
 
    Copyright (C) 2015 David Knight
@@ -25,7 +25,7 @@ File: chronos.info,  Node: Top,  Next: Introduction to Chronos,  Up: (dir)
 Chronos
 *******
 
-This manual is for Chronos v1.
+This manual is for Chronos v1.2
 
 * Menu:
 
@@ -151,8 +151,8 @@ buffer.  *note Commands in the *chronos* buffer: buff-cmds.
 4.1 Adding a timer
 ==================
 
-When adding a timer, chronos will prompt for an expiry time and a
-message.
+When adding a timer, `chronos-add-timer' will prompt for an expiry
+time and a message.
 
 4.1.1 Expiry time specification
 -------------------------------
@@ -207,6 +207,54 @@ to expire earlier, one with `-5' (five minutes before end, i.e.
          [18:55]          58      51:10  Thanks and goodbyes
          [19:00]        2:01      56:10  Talk ends
 
+4.1.2 chronos-add-timers-from-string
+------------------------------------
+
+`M-x chronos-add-timers-from-string' can be used to add multiple
+consecutive timers from one string.
+
+   This string specifies a timer by a chronos expiry time
+specification and a message, separated by `/'.  Multiple cumulative
+timers can be specified by separating them with `+'.
+
+   If the first timer in the string has a relative expiry time, this
+is relative to current time or, with the prefix argument, to the
+currently selected timer.  Subsequent relative timers in the string
+are with respect to the expiry time of the previous timer in the
+string.
+
+   For example: "5/Coffee" would be for a timer expiring in five
+minutes with the message "Coffee".
+
+   You could enter a pomodoro style timer with:
+
+     25/Pomodoro: Work on helm-chronos + 5/Pomodoro: Rest
+
+   Which will give a timer to go off in 25 minute and 30 (=25+5)
+minutes:
+
+     Expiry      Elapsed      To go  Message
+     [13:10]                         --now--
+     [13:35]                  25:00  Pomodoro: Work on helm-chronos
+     [13:40]                  30:00  Pomodoro: Rest
+
+   A more complex example might be:
+
+     =17:00/Drink coffee + -5/Brew coffee + -5/Boil kettle + 25/Finish break
+
+   Which will give a timer at 5 o'clock to drink coffee, a timer five
+minutes before that (16:55) to start brewing the coffee, a reminder
+five minutes before that (16:50) to put the kettle on and a reminder
+25 minutes after that (17:15) to finish drinking coffee and get back
+to work.
+
+     Expiry      Elapsed      To go  Message
+     [13:19]                         --now--
+     [16:50]                3:30:46  Boil kettle
+     [16:55]                3:35:46  Brew coffee
+     [17:00]                3:40:46  Drink coffeea
+     [17:15]                3:55:46  Finish break
+
 4.2 Commands in the *chronos* buffer
 ====================================
 
@@ -215,6 +263,7 @@ unpaused, lapped, adjusted or deleted.  Default keybindings in this
 buffer are:
 
      a    add a timer
+     A    add multiple consecutive timer(s) in one go
      n/p  move selection down/up
      SPC  pause/unpause selected timer
      d    delete selected timer
@@ -239,6 +288,9 @@ of the selected timer is controlled by the prefix.
 
 Adding a timer with `a' in the *chronos* buffer is the same as adding
 a timer with `M-x chronos-add-timer'.
+
+   Adding with `A' is the same as `M-x
+chronos-add-timers-from-string'.
 
 4.2.2 Move selection
 --------------------
@@ -908,14 +960,14 @@ permit their use in free software.
 
 
 Tag Table:
-Node: Top785
-Node: Introduction to Chronos1067
-Node: Installation and quick start2226
-Node: Configuration3964
-Node: Controls4385
-Ref: time-spec4815
-Ref: buff-cmds6514
-Node: Notifications10903
-Node: GNU Free Documentation License14181
+Node: Top787
+Node: Introduction to Chronos1070
+Node: Installation and quick start2229
+Node: Configuration3967
+Node: Controls4388
+Ref: time-spec4830
+Ref: buff-cmds8348
+Node: Notifications12864
+Node: GNU Free Documentation License16142
 
 End Tag Table

@@ -4,8 +4,8 @@
 
 ;; Author: David Knight <dxknight@opmbx.org>
 ;; Created: 12 May 2015
-;; Package-Version: 1.1
-;; Version: 1.1
+;; Package-Version: 1.2
+;; Version: 1.2
 ;; Keywords: calendar
 ;; URL: http://github.com/dxknight/chronos
 
@@ -238,6 +238,7 @@ running or the user is ok with killing the buffer."
           chronos--buffer nil)))
 
 (define-key chronos-mode-map (kbd "a")   'chronos-add-timer)
+(define-key chronos-mode-map (kbd "A")   'chronos-add-timers-from-string)
 (define-key chronos-mode-map (kbd "SPC") 'chronos-toggle-pause-selected-line)
 (define-key chronos-mode-map (kbd "e")   'chronos-edit-selected-line)
 (define-key chronos-mode-map (kbd "d")   'chronos-delete-selected-line)
@@ -561,10 +562,10 @@ buffer."
 
 (defun chronos--display-timers ()
   "Insert timers in display."
-  (mapc (lambda (c)
-          (chronos--check-for-expiry c)
-          (insert (chronos--format-timer c))
-          (newline))
+  (mapc #'(lambda (c)
+            (chronos--check-for-expiry c)
+            (insert (chronos--format-timer c))
+            (newline))
         chronos--timers-list))
 
 (defun chronos--notification-expired-p (n)
@@ -587,12 +588,12 @@ buffer."
                          (length chronos-notification-bullet-indent)
                          ?\s)
             fill-column chronos-notification-fill-column)
-      (mapc (lambda (n)
-              (unless (chronos--notification-expired-p n)
-                (setq notifications-shown t)
-                (let ((start (point)))
-                  (insert (chronos--format-notification n))
-                  (newline))))
+      (mapc #'(lambda (n)
+                (unless (chronos--notification-expired-p n)
+                  (setq notifications-shown t)
+                  (let ((start (point)))
+                    (insert (chronos--format-notification n))
+                    (newline))))
             chronos--notification-list)
       (put-text-property notification-start-point (point)
                          'face 'chronos-notification)
@@ -737,6 +738,46 @@ timer."
                                     (chronos--select-timer)))
   (chronos--update-display)) 
 
+(defun chronos--trim-blanks (s)
+  "Trim whitespace from start/end of string S."
+  (replace-regexp-in-string "\\`\\s-*\\|\\s-*\\'" "" s))
+
+(defun chronos--split-timers-string (timers-string)
+  "Split string TIMERS-STRING which may contain multiple `+' separated
+cumulative timer specifications in the format <expiry spec> /
+<message>.  Result is a list of (exp-spec message)"
+  (mapcar #'(lambda (ts)
+              (mapcar 'chronos--trim-blanks
+                      (split-string ts "/")))
+          (split-string timers-string "+")))
+
+;;;###autoload
+(defun chronos-add-timers-from-string (timers-string prefix)
+  "Add a timer (or timers) based on TIMER-STRING.
+
+TIMER-STRING consists of timer specifications separated by `+'s.
+
+Timer specifications consist of an expiry specification and a
+message separated by a `/'.
+
+If the prefix argument is selected, the (first) timer will be relative to the selected timer, otherwise current time.
+
+Subsequent timers in the string will be relative to the previous timer.
+
+A list of timers ((exp msg) ...) is returned."
+  (interactive "sTimer specification(s): \nP")
+  (unless chronos--buffer
+    (chronos-initialize))
+  (let ((timers (chronos--split-timers-string timers-string)))
+    (let ((previous-timer (and prefix
+                               (chronos--select-timer))))
+      (dolist (timer timers)
+        (setq previous-timer (chronos--make-and-add-timer (car timer)
+                                                          (cadr timer)
+                                                          previous-timer)))
+      (chronos--update-display))
+    timers))
+
 (defun chronos-toggle-pause-selected-line ()
   "Pause or unpause selected timer."
   (interactive)
@@ -754,9 +795,9 @@ timer."
   "Replace <n> with <n+1> in string S."
   (replace-regexp-in-string
    "<[0-9]+>"
-   (lambda (m)
-     (format "<%s>" (1+ (string-to-number
-                         (substring m 1 -1)))))
+   #'(lambda (m)
+       (format "<%s>" (1+ (string-to-number
+                           (substring m 1 -1)))))
    s))
 
 (defun chronos-lap-selected-line ()

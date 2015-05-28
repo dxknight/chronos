@@ -5,6 +5,11 @@
 
 ## Whats New
 
+Version 1.2 (Internal) allows entry of multiple cumulative timers, e.g. 'M-x
+chronos-add-timers-from-string' `25/Pomodoro: Work on helm-chronos + 5/Pomodoro:
+Rest` will add two timers: one to go off in 25 minutes and one to go off in 30
+(=25+5).
+
 Version 1.1 (Internal) has extra configuration options and a revamped
 notification system using the hook `chronos-expiry-functions`.
 
@@ -81,6 +86,9 @@ prompted for the time, enter an integer number of minutes for the timer to count
 down from (see later for more sophisticated options).  When prompted for the
 message, enter a short description of the timer for display and notification.
 
+Alternatively, you can use `M-x chronos-add-timers-from-string`.  This function
+prompts for a string, from which one or more timers can be parsed.
+
 ## Dependencies
 
 Chronos should work on a stock Emacs install.
@@ -148,6 +156,45 @@ minutes before end, i.e. 18:45).
     [18:55]          58      51:10  Thanks and goodbyes
     [19:00]        2:01      56:10  Talk ends
 
+# Chronos add timers from string
+
+Although mainly useful for the `helm-chronos` helm interface,
+`chronos-add-timers-from-string` parses a single string to set up one or more
+consecutive timers.  If the first timer in the string has a relative expiry
+time, this is relative to current time or, with the prefix argument, to the
+currently selected timer.  Subsequent timers are relative to the previous timer
+in the string.
+
+The format of the string for a single timer is <expiry specification>/<message>.
+You can delimit multiple consecutive timers with '+'.
+
+For example, you could enter a pomodoro style timer with:
+
+     25/Pomodoro: Work on helm-chronos + 5/Pomodoro: Rest
+
+which will give a timer to go off in 25 minute and 30 (=25+5) minutes:
+
+     Expiry      Elapsed      To go  Message
+     [13:10]                         --now--
+     [13:35]                  25:00  Pomodoro: Work on helm-chronos
+     [13:40]                  30:00  Pomodoro: Rest
+
+A more complex example might be
+
+     =17:00/Drink coffee + -5/Brew coffee + -5/Boil kettle + 25/Finish break
+
+Which will give a timer at 5 o'clock to drink coffee, a timer five minutes
+before that (16:55) to start brewing the coffee, a reminder five minutes before
+that (16:50) to put the kettle on and a reminder 25 minutes after that (17:15)
+to finish drinking coffee and get back to work.
+
+     Expiry      Elapsed      To go  Message
+     [13:19]                         --now--
+     [16:50]                3:30:46  Boil kettle
+     [16:55]                3:35:46  Brew coffee
+     [17:00]                3:40:46  Drink coffee
+     [17:15]                3:55:46  Finish break
+
 # Controls
 
 In the \*chronos\* buffer, new timers can be added, selected, paused,
@@ -156,7 +203,8 @@ buffer are:
 
 Key | Action
 --- | ------------------------------------------------------------------------------------
-a   | add a timer
+a   | add a timer by specifying expiry time and a message
+A   | add multiple consecutive timer(s) in one go
 n/p | move selection down/up
 SPC | pause/unpause (pausing affects time to go and the expiry time, but not elapsed time)
 d   | delete selected timer
@@ -180,6 +228,8 @@ selected timer is controlled by the prefix.
 
 Adding a timer with `a` in the \*chronos\* buffer is the same as adding
 a timer with `M-x chronos-add-timer`.
+
+Adding with `A` is the same as `M-x chronos-add-timers-from-string`.
 
 ## Move selection
 
