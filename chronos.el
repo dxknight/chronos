@@ -709,8 +709,20 @@ than 60, nor that hours are less than 24."
               (* (if negoffsetp -1 1)
                  (+ s (* 60 m) (* 3600 h))))))))))
 
+(defun chronos--make-and-add-timer (time message base)
+  "Add a timer with timespec TIME, message MESSAGE and base timer
+  for relative calculations of BASE.  Returns the newly created
+  timer."
+  (let ((new-timer 
+         (chronos--make-timer
+          (chronos--parse-timestring time
+                                     (chronos--expiry-time base))
+          message)))
+    (push new-timer chronos--timers-list)
+    new-timer))
+
 ;;;###autoload
-(defun chronos-add-timer (time msg prefix)
+(defun chronos-add-timer (time message prefix)
   "Add a timer to expire at time TIME with message MSG.
 
 TIME can be absolute or relative (positive countdown or negative
@@ -719,13 +731,11 @@ timer."
   (interactive "sTime: \nsMessage: \nP")
   (unless chronos--buffer
     (chronos-initialize))
-  (push (chronos--make-timer
-         (chronos--parse-timestring
-          time
-          (and prefix (chronos--expiry-time (chronos--select-timer))))
-         msg)
-        chronos--timers-list)
-  (chronos--update-display))
+  (chronos--make-and-add-timer time
+                               message
+                               (and prefix
+                                    (chronos--select-timer)))
+  (chronos--update-display)) 
 
 (defun chronos-toggle-pause-selected-line ()
   "Pause or unpause selected timer."
