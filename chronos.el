@@ -132,8 +132,8 @@ must accept one argument, the expired timer."
 (defcustom chronos-desktop-notifications-urgency 'critical
   "The urgency of expiry notifications."
   :type  '(choice (const :tag "Low" low)
-                 (const :tag "Normal" normal)
-                 (const :tag "Critical" critical))
+                  (const :tag "Normal" normal)
+                  (const :tag "Critical" critical))
   :group 'chronos-notifications)
 
 (defcustom chronos-shell-notify-program ""
@@ -193,8 +193,11 @@ text to speech program."
 (defvar chronos--timers-list nil
   "The list of timers.")
 
-(defvar chronos--selected-timers nil
+(defvar chronos--selected-timer nil
   "The currently selected timer.")
+
+(defvar chronos--selected-timer-point nil
+  "The point at the start of the selected timer.")
 
 (defvar chronos--notification-list nil
   "List of notifications to display in buffer notification area.")
@@ -241,16 +244,20 @@ running or the user is ok with killing the buffer."
           chronos--update-timer nil
           chronos--buffer nil)))
 
-(define-key chronos-mode-map (kbd "a")   'chronos-add-timer)
-(define-key chronos-mode-map (kbd "A")   'chronos-add-timers-from-string)
-(define-key chronos-mode-map (kbd "SPC") 'chronos-toggle-pause-selected-line)
-(define-key chronos-mode-map (kbd "e")   'chronos-edit-selected-line)
-(define-key chronos-mode-map (kbd "d")   'chronos-delete-selected-line)
-(define-key chronos-mode-map (kbd "l")   'chronos-lap-selected-line)
-(define-key chronos-mode-map (kbd "F")   'chronos-toggle-freeze-display)
-(define-key chronos-mode-map (kbd "D")   'chronos-delete-all-expired)
-(define-key chronos-mode-map (kbd "n")   'chronos-next-line)
-(define-key chronos-mode-map (kbd "p")   'chronos-previous-line)
+(define-key chronos-mode-map (kbd "a")      'chronos-add-timer)
+(define-key chronos-mode-map (kbd "A")      'chronos-add-timers-from-string)
+(define-key chronos-mode-map (kbd "SPC")    'chronos-toggle-pause-selected-line)
+(define-key chronos-mode-map (kbd "e")      'chronos-edit-selected-line)
+(define-key chronos-mode-map (kbd "d")      'chronos-delete-selected-line)
+(define-key chronos-mode-map (kbd "l")      'chronos-lap-selected-line)
+(define-key chronos-mode-map (kbd "F")      'chronos-toggle-freeze-display)
+(define-key chronos-mode-map (kbd "D")      'chronos-delete-all-expired)
+(define-key chronos-mode-map (kbd "n")      'chronos-next-line)
+(define-key chronos-mode-map (kbd "C-n")    'chronos-next-line)
+(define-key chronos-mode-map (kbd "<down>") 'chronos-next-line)
+(define-key chronos-mode-map (kbd "p")      'chronos-previous-line)
+(define-key chronos-mode-map (kbd "C-p")    'chronos-previous-line)
+(define-key chronos-mode-map (kbd "<up>")   'chronos-previous-line)
 
 (defun chronos--make-timer (expiry-time message &optional start)
   "Make a new timer object labled with MESSAGE that expires at
@@ -368,6 +375,10 @@ created) of timer C."
   (and (chronos--timerp c)
        (null (chronos--raw-time c))))
 
+(defun chronos--selectedp (c)
+  "Return t if C is the selected timer."
+  (equal c chronos--selected-timer))
+
 (defun chronos--expiry-time (c)
   "Return a 4 int list time that timer C is expected to/did
 expire."
@@ -484,10 +495,11 @@ C's expected expiry."
            " "
            (chronos--message c))
    'face (cond
-          ((chronos--pausedp c)  'chronos-paused)
-          ((chronos--expiredp c) 'chronos-expired)
-          ((chronos--nowp c)     'chronos-now)
-          (t                     'chronos-default))))
+          ((chronos--pausedp c)   'chronos-paused)
+          ((chronos--expiredp c)  'chronos-expired)
+          ((chronos--nowp c)      'chronos-now)
+          ((chronos--selectedp c) 'chronos-selected)
+          (t                      'chronos-default))))
 
 (defun chronos--check-for-expiry (c)
   "Call `chronos-expiry-functions' hook if required by timer C expiring."
@@ -512,8 +524,8 @@ buffer."
 (defun chronos-desktop-notifications-notify (c)
   "Notify expiration of timer C using desktop notifications built in."
   (notifications-notify :urgency chronos-desktop-notifications-urgency
-                          :title   (chronos--time-string c)
-                          :body    (chronos--message c)))
+                        :title   (chronos--time-string c)
+                        :body    (chronos--message c)))
 
 (defun chronos-buffer-notify (c)
   "Notify expiration of timer C in the notification area of the
@@ -539,25 +551,25 @@ buffer."
 (defun chronos-shell-notify (c)
   "Notify expiration of timer C by running a shell command."
   (chronos--shell-command "Chronos shell notification"
-                         chronos-shell-notify-program
-                         chronos-shell-notify-parameters))
+                          chronos-shell-notify-program
+                          chronos-shell-notify-parameters))
 
 (defun chronos-dunstify (c)
   "Notify expiration of timer C using dunstify."
   (chronos--shell-command "Chronos dunstify notification"
-                            "dunstify"
-                            (list "-u" (symbol-name chronos-desktop-notifications-urgency)
-                                  (chronos--time-string c)
-                                  (chronos--message c))))
+                          "dunstify"
+                          (list "-u" (symbol-name chronos-desktop-notifications-urgency)
+                                (chronos--time-string c)
+                                (chronos--message c))))
 
 (defun chronos-text-to-speech-notify (c)
   "Notify expiration of timer C by text-to-speech."
   (chronos--shell-command "Chronos text-to-speech notification"
-                            chronos-text-to-speech-program
-                            (append (chronos--ensure-list chronos-text-to-speech-program-parameters)
-                                    (list (concat (chronos--time-string c)
-                                                  " "
-                                                  (chronos--message c))))))
+                          chronos-text-to-speech-program
+                          (append (chronos--ensure-list chronos-text-to-speech-program-parameters)
+                                  (list (concat (chronos--time-string c)
+                                                " "
+                                                (chronos--message c))))))
 
 (defun chronos--display-header ()
   "Insert header in display."
@@ -568,6 +580,8 @@ buffer."
   "Insert timers in display."
   (mapc #'(lambda (c)
             (chronos--check-for-expiry c)
+            (when (equal c chronos--selected-timer)
+              (setq chronos--selected-timer-point (point)))
             (insert (chronos--format-timer c))
             (newline))
         chronos--timers-list))
@@ -586,8 +600,8 @@ buffer."
 (defun chronos--display-notifications ()
   "Insert notifications in display.  Return t if any notifications are inserted, nil otherwise."
   (let ((notifications-shown nil))
-    (newline 3)
     (let ((notification-start-point (point)))
+      (newline)
       (setq fill-prefix (make-string
                          (length chronos-notification-bullet-indent)
                          ?\s)
@@ -621,74 +635,54 @@ buffer."
      ((equal e (car l)) p)
      (t (chronos--position e (cdr l) (1+ p))))))
 
-;; ensure that --update-display, --select-timer and --display-line-number remain
-;; consistent.
-(defun chronos--update-display (&optional c)
-  "Update the list of timers displayed in the *chronos* buffer,
-optionally putting the cursor to select the line with timer C."
+(defun chronos--update-display ()
+  "Update the list of timers displayed in the *chronos* buffer."
   (when (and (buffer-live-p chronos--buffer)
              (not chronos--frozenp))
     (chronos--sort-by-expiry)
     (with-current-buffer chronos--buffer
-      (let* ((inhibit-read-only t)
-             (window (get-buffer-window chronos--buffer))
-             (wp (window-point window)))
+      (let ((inhibit-read-only t))
         (erase-buffer)
         (chronos--display-header)
+        (setq chronos--selected-timer-point nil)
         (chronos--display-timers)
         (when
             (chronos--display-notifications)
           (chronos--display-clock))
-        (if c
-            (if (window-live-p window)
-                (with-selected-window window
-                  (forward-line (- (chronos--display-line-number c)
-                                   (line-number-at-pos))))
-              (forward-line (- (chronos--display-line-number c)
-                                   (line-number-at-pos))))
-          (set-window-point window wp))))))
-
-;; ensure that --update-display, --select-timer and --display-line-number remain
-;; consistent.
-(defun chronos--select-timer ()
-  "Return the timer shown on the cursor's line, or nil if none
-  selected."
-  (with-current-buffer chronos--buffer
-    (let ((l (- (line-number-at-pos) 1 chronos--header-lines)))
-      (if (<= 0 l (1- (length chronos--timers-list)))
-          (nth l chronos--timers-list)
-        nil))))
-
-;; ensure that --update-display, --select-timer and --display-line-number remain
-;; consistent.
-(defun chronos--display-line-number (c)
-  "Return the screen line number for timer C, nil if not found."
-  (let ((p (chronos--position c chronos--timers-list)))
-    (and p
-         (+ 1 chronos--header-lines p))))
+        (when chronos--selected-timer-point
+          (goto-char chronos--selected-timer-point))))))
 
 (defun chronos-next-line ()
   "Move the cursor to the next usable line."
   (interactive)
-  (if (>= (line-number-at-pos)
-          (+ chronos--header-lines
-             (length chronos--timers-list)))
-      (forward-line (- (length chronos--timers-list))))
-  (forward-line))
+  (let ((next-timer (cadr (member chronos--selected-timer
+                                  chronos--timers-list))))
+    (setq chronos--selected-timer (or next-timer
+                                      (car chronos--timers-list))))
+  (chronos--update-display))
+
+(defun chronos--previous (e l &optional r)
+  "Finds the element in list L that is previous to element E.
+  Returns the end of list L if E is the first element, nil or not
+  found."
+  (if (or (null e)
+          (null l)
+          (equal e (car l)))
+      (or r (car (last l)))
+    (chronos--previous e (cdr l) (car l))))
 
 (defun chronos-previous-line ()
   "Move the cursor to the previous usable line."
   (interactive)
-  (if (> (1- (line-number-at-pos))
-         chronos--header-lines)
-      (forward-line -1)
-    (forward-line (1- (length chronos--timers-list)))))
+  (setq chronos--selected-timer (chronos--previous chronos--selected-timer
+                                                   chronos--timers-list))
+  (chronos--update-display))
 
 (defun chronos--sort-by-expiry ()
   "Sort chronos by seconds to expiry, with longest expired and
 soon to expire at the top."
   (setq chronos--timers-list (sort chronos--timers-list
-                                    'chronos--expires-earlier-than-p)))
+                                   'chronos--expires-earlier-than-p)))
 
 (defun chronos--start-of-day ()
   "Return a float time representing today's 00:00"
@@ -762,11 +756,11 @@ timer."
   (interactive "sTime: \nsMessage: \nP")
   (unless chronos--buffer
     (chronos-initialize))
-  (chronos--update-display
-   (chronos--make-and-add-timer time
-                                message
-                                (and prefix
-                                     (chronos--select-timer))))) 
+  (chronos--make-and-add-timer time
+                               message
+                               (and prefix
+                                    chronos--selected-timer))
+  (chronos--update-display))
 
 (defun chronos--trim-blanks (s)
   "Trim whitespace from start/end of string S."
@@ -801,21 +795,23 @@ A list of timers ((exp msg) ...) is returned."
     (chronos-initialize))
   (let ((timers (chronos--split-timers-string timers-string)))
     (let* ((previous-timer (and prefix
-                                (chronos--select-timer)))
+                                chronos--selected-timer))
            (base-timer previous-timer))
+      (setq chronos--selected-timer previous-timer)
       (dolist (timer timers)
         (let ((new-timer (chronos--make-and-add-timer (car timer)
-                                                          (cadr timer)
-                                                          previous-timer)))
-          (unless base-timer (setq base-timer new-timer))
+                                                      (cadr timer)
+                                                      previous-timer)))
+          (unless chronos--selected-timer
+            (setq chronos--selected-timer new-timer))
           (setq previous-timer new-timer)))
-      (chronos--update-display base-timer))
+      (chronos--update-display))
     timers))
 
 (defun chronos-toggle-pause-selected-line ()
   "Pause or unpause selected timer."
   (interactive)
-  (chronos--toggle-pause (chronos--select-timer))
+  (chronos--toggle-pause chronos--selected-timer)
   (chronos--update-display))
 
 (defun chronos--ensure-lap-message (c)
@@ -839,7 +835,7 @@ A list of timers ((exp msg) ...) is returned."
 information and start a new timer continuing the count.  The
 selected timer must be running."
   (interactive)
-  (let ((c1 (chronos--select-timer)))
+  (let ((c1 chronos--selected-timer))
     (when (chronos--runningp c1)
       (chronos--ensure-lap-message c1)
       (let ((c1-msg (chronos--message c1))
@@ -864,7 +860,7 @@ role of the prefix key is reversed: without prefix, the
 adjustment is relative to the selected timer whereas with a
 prefix the adjustment is relative to the current time."
   (interactive "sTime: \nP")
-  (let ((c (chronos--select-timer)))
+  (let ((c chronos--selected-timer))
     (when (chronos--running-or-paused-p c)
       (let ((ftime (chronos--parse-timestring time
                                               (if prefix
@@ -879,8 +875,9 @@ prefix the adjustment is relative to the current time."
 (defun chronos-delete-selected-line ()
   "Delete selected timer."
   (interactive)
-  (let ((c (chronos--select-timer)))
+  (let ((c chronos--selected-timer))
     (unless (chronos--nowp c)
+      (chronos-next-line)
       (setq chronos--timers-list
             (delq c chronos--timers-list))
       (chronos--update-display))))
@@ -897,5 +894,3 @@ prefix the adjustment is relative to the current time."
 (provide 'chronos)
 
 ;;; chronos.el ends here
-
-
