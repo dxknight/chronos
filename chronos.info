@@ -125,6 +125,11 @@ specification: time-spec. for more sophisticated options).  When
 prompted for the message, enter a short description of the timer for
 display and notification.
 
+   Alternatively, you can use `M-x chronos-add-timers-from-string'.
+This function prompts for a string, from which one or more timers can
+be parsed. See the section *note Add timers from string:
+add-timers-from-string.
+
 
 File: chronos.info,  Node: Configuration,  Next: Controls,  Prev: Installation and quick start,  Up: Top
 
@@ -157,8 +162,13 @@ time and a message.
 4.1.1 Expiry time specification
 -------------------------------
 
-The expiry time specification can be relative to current time or the
-expiry of another timer, or absolute.
+The expiry time specification can be absolute or relative. Relative
+times are with respect to a base time that, depending on
+circumstances, could be:
+
+   * current time, or
+
+   * the expiry time of another timer
 
 4.1.1.1 absolute time
 .....................
@@ -174,7 +184,7 @@ add 24 hours: e.g. `=25:30' specifies 1:30 tomorrow morning.
 Up to three numbers can be given, separated with colons `:'.  A minus
 `-' can be prepended to indicate negative times.
 
-   * No numbers (or all zeros) - current time
+   * No numbers (or all zeros) - the base time
 
    * One number - minutes
 
@@ -207,21 +217,20 @@ to expire earlier, one with `-5' (five minutes before end, i.e.
          [18:55]          58      51:10  Thanks and goodbyes
          [19:00]        2:01      56:10  Talk ends
 
-4.1.2 chronos-add-timers-from-string
-------------------------------------
+4.1.2 Add timers from string
+----------------------------
 
-`M-x chronos-add-timers-from-string' can be used to add multiple
-consecutive timers from one string.
+Although mainly useful for the helm-chronos helm interface, `M-x
+chronos-add-timers-from-string' can be used to add multiple
+consecutive timers from one string.  If the first timer in the string
+has a relative expiry time, this is relative to current time or, with
+the prefix argument, to the currently selected timer.  Subsequent
+relative timers in the string are with respect to the expiry time of
+the previous timer in the string.
 
-   This string specifies a timer by a chronos expiry time
-specification and a message, separated by `/'.  Multiple cumulative
-timers can be specified by separating them with `+'.
-
-   If the first timer in the string has a relative expiry time, this
-is relative to current time or, with the prefix argument, to the
-currently selected timer.  Subsequent relative timers in the string
-are with respect to the expiry time of the previous timer in the
-string.
+   The format of the string for a single timer is `<expiry
+specification>/<message>'.  Multiple cumulative timers can be
+specified by separating them with `+'.
 
    For example: "5/Coffee" would be for a timer expiring in five
 minutes with the message "Coffee".
@@ -230,8 +239,8 @@ minutes with the message "Coffee".
 
      25/Pomodoro: Work on helm-chronos + 5/Pomodoro: Rest
 
-   Which will give a timer to go off in 25 minute and 30 (=25+5)
-minutes:
+   Which will give a timer to go off in 25 minutes and another in 30
+(=25+5) minutes:
 
      Expiry      Elapsed      To go  Message
      [13:10]                         --now--
@@ -262,16 +271,43 @@ In the *chronos* buffer, new timers can be added, selected, paused,
 unpaused, lapped, adjusted or deleted.  Default keybindings in this
 buffer are:
 
-     a    add a timer
-     A    add multiple consecutive timer(s) in one go
-     n/p  move selection down/up
-     SPC  pause/unpause selected timer
-     d    delete selected timer
-     D    delete all expired timers
-     e    edit selected timer
-     l    lap selected timer
-     F    freeze/unfreeze the display
-     q    quit window
+`a'
+     add a timer
+
+`A'
+     add multiple consecutive timer(s) in one go
+
+`n'
+`C-n'
+`<down>'
+     Select next timer
+
+`p'
+`C-p'
+`<up>'
+     Select previous timer
+
+`SPC'
+     pause/unpause selected timer
+
+`d'
+     delete selected timer
+
+`D'
+     delete all expired timers
+
+`e'
+     edit selected timer
+
+`l'
+     lap selected timer
+
+`F'
+     freeze/unfreeze the display
+
+`q'
+     quit window
+
 
    Whether relative times are against current time or the expiry time
 of the selected timer is controlled by the prefix.
@@ -296,8 +332,8 @@ chronos-add-timers-from-string'.
 --------------------
 
 A timer is selected when the cursor is on its line.  The cursor can be
-moved down and up the timer list, wrapping as necessary, with `n' and
-`p'.
+moved down and up the timer list, wrapping as necessary, with
+`n'/`C-n'/`<down>' and `p'/`C-p'/`<up>'.
 
    The -now- timer can be selected, but cannot be paused, lapped or
 deleted.
@@ -963,11 +999,12 @@ Tag Table:
 Node: Top787
 Node: Introduction to Chronos1070
 Node: Installation and quick start2229
-Node: Configuration3967
-Node: Controls4388
-Ref: time-spec4830
-Ref: buff-cmds8348
-Node: Notifications12864
-Node: GNU Free Documentation License16142
+Node: Configuration4187
+Node: Controls4608
+Ref: time-spec5050
+Ref: add-timers-from-string6857
+Ref: buff-cmds8708
+Node: Notifications13309
+Node: GNU Free Documentation License16587
 
 End Tag Table
