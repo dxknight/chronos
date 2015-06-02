@@ -87,7 +87,8 @@ down from (see later for more sophisticated options).  When prompted for the
 message, enter a short description of the timer for display and notification.
 
 Alternatively, you can use `M-x chronos-add-timers-from-string`.  This function
-prompts for a string, from which one or more timers can be parsed.
+prompts for a string, from which one or more timers can be parsed.  See the
+section [Add timers from string](#add-timers-from-string).
 
 ## Dependencies
 
@@ -99,7 +100,7 @@ notifications section later.
 
 ## Enhancements
 
-There is a helm interface for conveniently adding timers, `helm-chronos`.
+There is a helm interface for conveniently adding timers: `helm-chronos`.
 
 See https://github.com/dxknight/helm-chronos
 
@@ -121,7 +122,7 @@ with respect to a base time that, depending on circumstances, could be:
 
 ## absolute time
 
-Start with an =, followed by a 24+hr clock time.  For example, `=17:00` is an
+Start with an `=`, followed by a 24+hr clock time.  For example, `=17:00` is an
 expiry time of five o'clock in the afternoon.  Times are for the current day.
 If you want to refer to times tomorrow (i.e. past midnight), add 24 hours:
 e.g. `=25:30` specifies 1:30 tomorrow morning.
@@ -149,8 +150,8 @@ For example, if the base time is 17:00:
 
 Negative relative times are more useful against existing timers.  Here, a timer
 was set for the absolute time 19:00, then with the cursor on this timer and
-using `(C-u a)`, two relative timers were set to expire earlier, one with **-5**
-(five minutes before end, i.e. 18:55) and the other with **-15** (fifteen
+using `(C-u a)`, two relative timers were set to expire earlier, one with `-5`
+(five minutes before end, i.e. 18:55) and the other with `-15` (fifteen
 minutes before end, i.e. 18:45).
 
     Expiry      Elapsed      To go  Message 
@@ -168,14 +169,15 @@ time, this is relative to current time or, with the prefix argument, to the
 currently selected timer.  Subsequent timers are relative to the previous timer
 in the string.
 
-The format of the string for a single timer is expiry specification/message.
-You can delimit multiple consecutive timers with '+'.
+The format of the string for a single timer is `<expiry specification>/<message>`.
+You can delimit multiple consecutive timers with `+`.
 
 For example, you could enter a pomodoro style timer with:
 
      25/Pomodoro: Work on helm-chronos + 5/Pomodoro: Rest
 
-which will give a timer to go off in 25 minute and 30 (=25+5) minutes:
+which will give a timer to go off in 25 minutes and another in 30 (=25+5)
+minutes:
 
      Expiry      Elapsed      To go  Message
      [13:10]                         --now--
@@ -208,7 +210,7 @@ Key | Action
 --- | ------------------------------------------------------------------------------------
 a   | add a timer by specifying expiry time and a message
 A   | add multiple consecutive timer(s) in one go
-n/p | move selection down/up
+n/p | move selection down/up (also `C-n`/`C-p` `<down>`/`<up>`)
 SPC | pause/unpause (pausing affects time to go and the expiry time, but not elapsed time)
 d   | delete selected timer
 D   | delete all expired timers
@@ -238,7 +240,7 @@ Adding with `A` is the same as `M-x chronos-add-timers-from-string`.
 
 A timer is selected when the cursor is on its line.  The cursor can be
 moved down and up the timer list, wrapping as necessary, with `n` and
-`p`.
+`p` (also `C-n`, `C-p`, `<down>` and `<up>`).
 
    The -now- timer can be selected, but cannot be paused, lapped or
 deleted.
@@ -271,9 +273,9 @@ message as a starting point.
 When a timer is lapped by pressing `l`:
    * The timer is paused and the time that had elapsed until the timer was
      lapped is appended to the message.  If the message does not already include
-     a lap number, <1> is inserted in the message.
+     a lap number, `<1>` is inserted in the message.
 
-   * A new timer with the message <n+1> is run continuing on from the one just
+   * A new timer with the message `<n+1>` is run continuing on from the one just
      lapped.
 
 ### Lap example
@@ -284,7 +286,7 @@ timer example.
    After running for six seconds, the timer was lapped with `l`.
 Eight seconds later, the timer was lapped again, then after five
 seconds and then four.  These lap times, together with lap numbers in
-<> were appended to the messages.  There is no lap time for lap 5, as
+`<>` were appended to the messages.  There is no lap time for lap 5, as
 that timer hasn't been lapped yet.
 
    The 'To go' column gives the total elapsed time, e.g. the first
@@ -303,10 +305,10 @@ four laps took 23 seconds.
 
 ## Freezing the display
 
-Freezing the display with `F` prevents any updates to the \*chronos\*
-buffer or triggering of expiry actions, but does not stop the timers
-running.  Unfreezing the display updates the \*chronos\* buffer to
-current values and triggers all outstanding actions.
+Freezing the display with `F` prevents any updates to the \*chronos\* buffer or
+triggering of expiry actions, but does not stop the timers running.  Unfreezing
+the display with `F` again updates the \*chronos\* buffer to current values and
+triggers all outstanding actions.
 
 ## Quitting, Killing and restarting
 
@@ -340,7 +342,8 @@ The hook `chronos-expiry-functions` is empty by default so it can be set
 directly as a list of functions, or `add-hook` can be used to add functions to
 it in the standard way.
 
-This hook is "abnormal", in that all functions added must take an argument: the expired timer.
+This hook is "abnormal", in that all functions added must take an argument: the
+expired timer.
 
 Standard functions available are:
 
@@ -355,7 +358,7 @@ chronos-dunstify      | Uses the `dunst` notification daemon (requires dunst and
 chronos-text-to-speech-notify | Uses `chronos-text-to-speech-program` (such as espeak) with `chronos-text-to-speech-program-parameters` to speak the expiry time and message.
 
 For example, in my init file I have:
-
+```elisp
     (setq chronos-shell-notify-program "mpv"
           chronos-shell-notify-parameters '("--really-quiet"
                                             "--af=scaletempo=speed=pitch"
@@ -367,7 +370,7 @@ For example, in my init file I have:
                                      chronos-buffer-notify
                                      chronos-shell-notify
                                      chronos-text-to-speech-notify))
-   
+```
 
 This sets the notification sequence to pop up a dunst notification, put the
 message in the \*chronos\* buffer in big text, run `mpv` in the shell with

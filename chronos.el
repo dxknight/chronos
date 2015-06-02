@@ -848,8 +848,10 @@ selected timer must be running."
         (chronos--set-message c2
                               (chronos--lap-string c1-msg))
         (chronos--set-start-time c2 (current-time))
+        (setq chronos--selected-timer c2)
         (push c2
-              chronos--timers-list)))))
+              chronos--timers-list)
+        (chronos--update-display)))))
 
 (defun chronos-edit-selected-line (time prefix)
   "Adjust the expiry time of a selected running or paused timer
