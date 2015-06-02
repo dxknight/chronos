@@ -46,7 +46,8 @@
 ;; to count down from.  When prompted for the message, enter a short description
 ;; of the timer for display and notification.
 ;;
-;; For more details, see the info manual or website.
+;; For more details, including more sophisticated time specifications and
+;; notification options, see the info manual or website.
 
 ;;; Code:
 
@@ -191,6 +192,9 @@ text to speech program."
 
 (defvar chronos--timers-list nil
   "The list of timers.")
+
+(defvar chronos--selected-timers nil
+  "The currently selected timer.")
 
 (defvar chronos--notification-list nil
   "List of notifications to display in buffer notification area.")
@@ -609,9 +613,19 @@ buffer."
   (interactive)
   (setq chronos--frozenp (not chronos--frozenp)))
 
-;; ensure that update-display and select-timer remain consistent.
-(defun chronos--update-display ()
-  "Update the list of timers displayed in the *chronos* buffer."
+(defun chronos--position (e l &optional p)
+  "Find position P of element E in list L, nil if not found."
+  (let ((p (or p 0)))
+    (cond
+     ((null l) nil)
+     ((equal e (car l)) p)
+     (t (chronos--position e (cdr l) (1+ p))))))
+
+;; ensure that --update-display, --select-timer and --display-line-number remain
+;; consistent.
+(defun chronos--update-display (&optional c)
+  "Update the list of timers displayed in the *chronos* buffer,
+optionally putting the cursor to select the line with timer C."
   (when (and (buffer-live-p chronos--buffer)
              (not chronos--frozenp))
     (chronos--sort-by-expiry)
@@ -625,9 +639,17 @@ buffer."
         (when
             (chronos--display-notifications)
           (chronos--display-clock))
-        (set-window-point window wp)))))
+        (if c
+            (if (window-live-p window)
+                (with-selected-window window
+                  (forward-line (- (chronos--display-line-number c)
+                                   (line-number-at-pos))))
+              (forward-line (- (chronos--display-line-number c)
+                                   (line-number-at-pos))))
+          (set-window-point window wp))))))
 
-;; ensure that update-display and select-timer remain consistent.
+;; ensure that --update-display, --select-timer and --display-line-number remain
+;; consistent.
 (defun chronos--select-timer ()
   "Return the timer shown on the cursor's line, or nil if none
   selected."
@@ -636,6 +658,14 @@ buffer."
       (if (<= 0 l (1- (length chronos--timers-list)))
           (nth l chronos--timers-list)
         nil))))
+
+;; ensure that --update-display, --select-timer and --display-line-number remain
+;; consistent.
+(defun chronos--display-line-number (c)
+  "Return the screen line number for timer C, nil if not found."
+  (let ((p (chronos--position c chronos--timers-list)))
+    (and p
+         (+ 1 chronos--header-lines p))))
 
 (defun chronos-next-line ()
   "Move the cursor to the next usable line."
@@ -732,11 +762,11 @@ timer."
   (interactive "sTime: \nsMessage: \nP")
   (unless chronos--buffer
     (chronos-initialize))
-  (chronos--make-and-add-timer time
-                               message
-                               (and prefix
-                                    (chronos--select-timer)))
-  (chronos--update-display)) 
+  (chronos--update-display
+   (chronos--make-and-add-timer time
+                                message
+                                (and prefix
+                                     (chronos--select-timer))))) 
 
 (defun chronos--trim-blanks (s)
   "Trim whitespace from start/end of string S."
@@ -760,7 +790,8 @@ TIMER-STRING consists of timer specifications separated by `+'s.
 Timer specifications consist of an expiry specification and a
 message separated by a `/'.
 
-If the prefix argument is selected, the (first) timer will be relative to the selected timer, otherwise current time.
+If the prefix argument is selected, the (first) timer will be
+relative to the selected timer, otherwise current time.
 
 Subsequent timers in the string will be relative to the previous timer.
 
@@ -769,13 +800,16 @@ A list of timers ((exp msg) ...) is returned."
   (unless chronos--buffer
     (chronos-initialize))
   (let ((timers (chronos--split-timers-string timers-string)))
-    (let ((previous-timer (and prefix
-                               (chronos--select-timer))))
+    (let* ((previous-timer (and prefix
+                                (chronos--select-timer)))
+           (base-timer previous-timer))
       (dolist (timer timers)
-        (setq previous-timer (chronos--make-and-add-timer (car timer)
+        (let ((new-timer (chronos--make-and-add-timer (car timer)
                                                           (cadr timer)
                                                           previous-timer)))
-      (chronos--update-display))
+          (unless base-timer (setq base-timer new-timer))
+          (setq previous-timer new-timer)))
+      (chronos--update-display base-timer))
     timers))
 
 (defun chronos-toggle-pause-selected-line ()

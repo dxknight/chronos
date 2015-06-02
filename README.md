@@ -113,22 +113,25 @@ change the faces used in the chronos buffer.
 
 # Expiry time specification
 
-The expiry time specification can be relative to current time or the expiry
-of another timer, or absolute.
+The expiry time specification can be absolute or relative.  Relative times are
+with respect to a base time that, depending on circumstances, could be:
+
+* current time, or
+* the expiry time of another timer
 
 ## absolute time
 
-Start with an =, followed by a 24+hr clock time.  For example, **=17:00** is an
+Start with an =, followed by a 24+hr clock time.  For example, `=17:00` is an
 expiry time of five o'clock in the afternoon.  Times are for the current day.
 If you want to refer to times tomorrow (i.e. past midnight), add 24 hours:
-e.g. **=25:30** specifies 1:30 tomorrow morning.
+e.g. `=25:30` specifies 1:30 tomorrow morning.
 
 ## relative time
 
 Up to three numbers can be given, separated with colons `:`.  A minus
 `-` can be prepended to indicate negative times.
 
-   * No numbers (or all zeros) - current time
+   * No numbers (or all zeros) - the base time
 
    * One number - minutes
 
@@ -138,11 +141,11 @@ Up to three numbers can be given, separated with colons `:`.  A minus
 
 Positive numbers indicate later expiry, negative ones earlier.
 
-For example, if the current time is 17:00:
-* **5** gives an expiry time of 17:05
-* **1:30** gives 18:30
-* **0:0:30** gives 30 seconds after 17:00
-* **0** gives a count up timer starting now, at 17:00.
+For example, if the base time is 17:00:
+* `5` gives an expiry time of 17:05
+* `1:30` gives 18:30
+* `0:0:30` gives 30 seconds after 17:00
+* empty or `0` gives a count up timer starting now, at 17:00.
 
 Negative relative times are more useful against existing timers.  Here, a timer
 was set for the absolute time 19:00, then with the cursor on this timer and
@@ -156,7 +159,7 @@ minutes before end, i.e. 18:45).
     [18:55]          58      51:10  Thanks and goodbyes
     [19:00]        2:01      56:10  Talk ends
 
-# Chronos add timers from string
+# Add timers from string
 
 Although mainly useful for the `helm-chronos` helm interface,
 `chronos-add-timers-from-string` parses a single string to set up one or more
@@ -165,7 +168,7 @@ time, this is relative to current time or, with the prefix argument, to the
 currently selected timer.  Subsequent timers are relative to the previous timer
 in the string.
 
-The format of the string for a single timer is <expiry specification>/<message>.
+The format of the string for a single timer is expiry specification/message.
 You can delimit multiple consecutive timers with '+'.
 
 For example, you could enter a pomodoro style timer with:
