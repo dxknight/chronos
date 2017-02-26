@@ -252,6 +252,7 @@ running or the user is ok with killing the buffer."
 (define-key chronos-mode-map (kbd "l")      'chronos-lap-selected-line)
 (define-key chronos-mode-map (kbd "F")      'chronos-toggle-freeze-display)
 (define-key chronos-mode-map (kbd "D")      'chronos-delete-all-expired)
+(define-key chronos-mode-map (kbd "r")      'chronos-reset-timer)
 (define-key chronos-mode-map (kbd "n")      'chronos-next-line)
 (define-key chronos-mode-map (kbd "C-n")    'chronos-next-line)
 (define-key chronos-mode-map (kbd "<down>") 'chronos-next-line)
@@ -892,6 +893,24 @@ prefix the adjustment is relative to the current time."
           (dolist (e chronos--timers-list tl)
             (unless (chronos--expiredp e)
               (push e tl))))))
+
+;;;###autoload
+(defun chronos-reset-timer ()
+  (interactive)
+  (chronos--reset-timer-using-new-timer chronos--selected-timer)
+  (chronos--update-display))
+
+(defun chronos--reset-timer-using-new-timer (c)
+  (let ((c2 (chronos--copy-timer c)))
+    (chronos--pause c)
+    (chronos--set-expiry-time c2 (time-add (current-time)
+					   (seconds-to-time
+					    (+ (chronos--seconds-since-start c)
+					       (chronos--seconds-to-expiry c)))))
+    (chronos--set-start-time c2 (current-time))
+    (setq chronos--timers-list (delq c chronos--timers-list))
+    (setq chronos--selected-timer c2)
+    (push c2 chronos--timers-list)))
 
 (provide 'chronos)
 
