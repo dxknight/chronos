@@ -566,7 +566,7 @@ buffer."
   "Notify expiration of timer C by text-to-speech."
   (chronos--shell-command "Chronos text-to-speech notification"
                           chronos-text-to-speech-program
-                          (append (chronos--ensure-list chronos-text-to-speech-program-parameters)
+                          (append (list (string-join (chronos--ensure-list chronos-text-to-speech-program-parameters) " "))
                                   (list (concat (chronos--time-string c)
                                                 " "
                                                 (chronos--message c))))))
