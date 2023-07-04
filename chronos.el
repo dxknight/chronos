@@ -8,6 +8,7 @@
 ;; Version: 1.2
 ;; Keywords: calendar
 ;; URL: http://github.com/dxknight/chronos
+;; Package-Requires: ((emacs "27.1") (consult "0.16"))
 
 ;; This program is free software; you can redistribute it and/or
 ;; modify it under the terms of the GNU General Public License as
@@ -29,7 +30,7 @@
 ;; Chronos provides multiple countdown / countup timers, shown sorted by expiry
 ;; time in a special buffer *chronos*.
 ;;
-;;    Expiry      Elapsed      To go  Message                  
+;;    Expiry      Elapsed      To go  Message
 ;;    [17:02]                         --now--
 ;;    [17:07]           9       4:51  Coffee
 ;;
@@ -52,6 +53,7 @@
 ;;; Code:
 
 (require 'notifications)
+(require 'consult)
 
 (defgroup chronos nil
   "Chronos' customization group."
@@ -63,6 +65,10 @@
 
 (defgroup chronos-notifications nil
   "Chronos' notifications customization subgroup."
+  :group 'chronos)
+
+(defgroup chronos-completion nil
+  "Chronos' completion customization subgroup."
   :group 'chronos)
 
 (defface chronos-default
@@ -111,17 +117,17 @@
   :group 'chronos)
 
 (defcustom chronos-now-message "--now--"
-  "Message to place on the 'now' line"
+  "Message to place on the 'now' line."
   :type  'string
   :group 'chronos)
 
 (defcustom chronos-header-text "Expiry      Elapsed      To go  Message                  "
-  "Header text for the chronos buffer"
+  "Header text for the chronos buffer."
   :type  'string
   :group 'chronos)
 
 (defcustom chronos-expiry-functions nil
-  "A hook for functions to run when a timer expires, usually to 
+  "A hook for functions to run when a timer expires, usually to
 inform the user of its expiry.
 
 `Chronos-expiry-functions' is an abnormal hook; all functions
@@ -183,6 +189,14 @@ text to speech program."
   :type  '(choice (string)
                   (repeat string))
   :group 'chronos-notifications)
+
+(defcustom chronos-standard-timers ""
+  "A list of `expiry time/message' strings."
+  :type  '(repeat string)
+  :group 'chronos-completion)
+
+(defvar chronos-history nil
+  "Chronos history for completion.")
 
 (defvar chronos--header-lines 1
   "How many lines in the chronos buffer header")
@@ -761,6 +775,45 @@ timer."
                                (and prefix
                                     chronos--selected-timer))
   (chronos--update-display))
+
+(defun chronos-normalize-timers-string (timers)
+  "Normalize string representation of the list of timers TIMERS."
+  (let* ((ns (mapconcat #'(lambda (ts)
+                            (format "%s/%s"
+                                    (car ts)
+                                    (cadr ts)))
+                        timers
+                        " + "))
+         (sep-pos  (string-match "/" ns))
+         (spaces   (if (and (numberp sep-pos)
+                            (< sep-pos 6))
+                       (make-string (- 6 sep-pos) ?\s)
+                     "")))
+    (concat spaces ns)))
+
+(defun chronos-parse-string-and-add-timer (timers-string)
+  "Parse string TIMERS-STRING which may contain multiple `+' separated
+cumulative timer specifications in the format <expiry spec> /
+<message>.
+
+The resulting timer specifications are added with
+`chronos--make-and-add-timer'."
+  (interactive "p")
+  (let ((timers-string-normalized
+         (chronos-normalize-timers-string
+          (chronos-add-timers-from-string timers-string
+                                          nil))))))
+
+;;;###autoload
+(defun chronos-select-timer ()
+  "Select a timer from `chronos-standard-timers'."
+  (interactive)
+  (let ((krono (consult--read chronos-standard-timers
+                :prompt "Choose your timer : "
+                :history chronos-history
+                :require-match nil)))
+   (chronos-parse-string-and-add-timer krono)))
+
 
 (defun chronos--trim-blanks (s)
   "Trim whitespace from start/end of string S."
