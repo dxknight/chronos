@@ -112,7 +112,7 @@
   :group 'chronos-faces)
 
 (defcustom chronos-buffer-name "*chronos*"
-  "Buffer name for the chronos buffer"
+  "Buffer name for the chronos buffer."
   :type  'string
   :group 'chronos)
 
@@ -121,7 +121,7 @@
   :type  'string
   :group 'chronos)
 
-(defcustom chronos-header-text "Expiry      Elapsed      To go  Message                  "
+(defcustom chronos-header-text "Expiry      Elapsed      To go  Message"
   "Header text for the chronos buffer."
   :type  'string
   :group 'chronos)
@@ -144,13 +144,13 @@ must accept one argument, the expired timer."
 
 (defcustom chronos-shell-notify-program ""
   "A shell command run when a timer expires to, for example,
-  ring a bell.  Empty string is no program."
+Ring a bell.  Empty string is no program."
   :type  '(choice (const :tag "None" "")
                   (string :tag "Program"))
   :group 'chronos-notifications)
 
 (defcustom chronos-shell-notify-parameters ""
-  "A string or list of strings with parameters for the shell notify command"
+  "A string or list of strings with parameters for the shell notify command."
   :type  '(choice (string)
                   (repeat string))
   :group 'chronos-notifications)
@@ -168,7 +168,7 @@ not show notifications in buffer."
 
 (defcustom chronos-notification-fill-column 25
   "Column for filling notifications.  Will depend on notification
-  face and window width.")
+face and window width.")
 
 (defcustom chronos-notification-wav nil
   "Wav file to play for notification using play-sound.  Nil is no
@@ -199,7 +199,7 @@ text to speech program."
   "Chronos history for completion.")
 
 (defvar chronos--header-lines 1
-  "How many lines in the chronos buffer header")
+  "How many lines in the chronos buffer header.")
 
 (defvar chronos--buffer nil
   "The special buffer for displaying timers.")
@@ -218,13 +218,13 @@ text to speech program."
 
 (defvar chronos--update-timer nil
   "A run at time timer for updating the *chronos* buffer with
-  chronos--update-display.")
+chronos--update-display.")
 
 (defvar chronos--frozenp nil
   "Whether display should be updated as normal (nil) or
-  frozen (t).  With a frozen display, time continues as normal
-  and will be applied - and overdue notifications made - when the
-  display is unfrozen.")
+frozen (t).  With a frozen display, time continues as normal
+and will be applied - and overdue notifications made - when the
+display is unfrozen.")
 
 (define-derived-mode chronos-mode special-mode
   "Chronos")
@@ -274,8 +274,8 @@ running or the user is ok with killing the buffer."
 (define-key chronos-mode-map (kbd "<up>")   'chronos-previous-line)
 
 (defun chronos--make-timer (expiry-time message &optional start)
-  "Make a new timer object labled with MESSAGE that expires at
-EXPIRY-TIME.  The action flag will be set to true if time to
+  "Make a new timer object labled with MESSAGE that expires at EXPIRY-TIME.
+The action flag will be set to true if time to
 expiry is positive, otherwise nil.
 
 A timer is represented by a list starting with the keyword
@@ -289,7 +289,7 @@ TIME is
             to (+) or past (-) expiry when it was paused.
 
 * a 4 int list : for a running timer, representing the expiry
-                 time in standard emacs time format.
+                 time in standard EMACS time format.
 
 MESSAGE is a string, used for labelling and notification
 
@@ -476,13 +476,13 @@ C's expected expiry."
       (format "%02d:%02d" h (if (> s 30) (1+ m) m)))))
 
 (defun chronos--time-string (c)
-  "Format time rounded to nearest minute for timer c."
+  "Format time rounded to nearest minute for timer C."
   (chronos--time-string-rounded-to-minute (chronos--expiry-time c)))
 
 (defun chronos--format-seconds (seconds)
   "Format SECONDS as H:M:S, rounded to nearest second, with
-  blanks replacing leading 0s and :s, and a trailing + for
-  negative seconds."
+blanks replacing leading 0s and :s, and a trailing + for
+negative seconds."
   (let* ((neg (if (> 0 seconds) "+" " "))
          (seconds (abs (round seconds)))
          (h (floor seconds 3600))
@@ -554,7 +554,7 @@ buffer."
 
 (defun chronos--shell-command (name cmd parms)
   "Run shell command CMD if it exists, with parameter or
-  parameter list PARMS.  Process is called NAME."
+parameter list PARMS.  Process is called NAME."
   (when (executable-find cmd)
     (start-process-shell-command name
                                  nil
@@ -608,7 +608,7 @@ buffer."
      chronos-notification-time))
 
 (defun chronos--format-notification (n)
-  "Format notification N for display"
+  "Format notification N for display."
   (concat " * " (cadr n)))
 
 (defun chronos--display-notifications ()
@@ -638,6 +638,7 @@ buffer."
                       'face 'chronos-notification-clock)))
 
 (defun chronos-toggle-freeze-display ()
+  "Toggle freeze diplay but not timers."
   (interactive)
   (setq chronos--frozenp (not chronos--frozenp)))
 
@@ -676,9 +677,9 @@ buffer."
   (chronos--update-display))
 
 (defun chronos--previous (e l &optional r)
-  "Finds the element in list L that is previous to element E.
-  Returns the end of list L if E is the first element, nil or not
-  found."
+  "Find the element in list L that is previous to element E.
+Returns the end of list L if E is the first element, nil or not
+found."
   (if (or (null e)
           (null l)
           (equal e (car l)))
@@ -699,7 +700,7 @@ soon to expire at the top."
                                    'chronos--expires-earlier-than-p)))
 
 (defun chronos--start-of-day ()
-  "Return a float time representing today's 00:00"
+  "Return a float time representing today's 00:00."
   (float-time (apply 'encode-time
                      (append '(0 0 0)
                              (nthcdr 3 (decode-time))))))
@@ -750,9 +751,8 @@ than 60, nor that hours are less than 24."
 
 (defun chronos--make-and-add-timer (time message base)
   "Add a timer with timespec TIME, message MESSAGE and base timer
-  for relative calculations of BASE.  Returns the newly created
-  timer."
-  (let ((new-timer 
+for relative calculations of BASE.  Returns the newly created timer."
+  (let ((new-timer
          (chronos--make-timer
           (chronos--parse-timestring time
                                      (chronos--expiry-time base))
@@ -762,7 +762,7 @@ than 60, nor that hours are less than 24."
 
 ;;;###autoload
 (defun chronos-add-timer (time message prefix)
-  "Add a timer to expire at time TIME with message MSG.
+  "Add a timer to expire at time TIME with message MESSAGE.
 
 TIME can be absolute or relative (positive countdown or negative
 countup) to now or (with the prefix argument) the selected
@@ -830,14 +830,14 @@ cumulative timer specifications in the format <expiry spec> /
 
 ;;;###autoload
 (defun chronos-add-timers-from-string (timers-string prefix)
-  "Add a timer (or timers) based on TIMER-STRING.
+  "Add a timer (or timers) based on TIMERS-STRING.
 
 TIMER-STRING consists of timer specifications separated by `+'s.
 
 Timer specifications consist of an expiry specification and a
 message separated by a `/'.
 
-If the prefix argument is selected, the (first) timer will be
+If the PREFIX argument is selected, the (first) timer will be
 relative to the selected timer, otherwise current time.
 
 Subsequent timers in the string will be relative to the previous timer.
@@ -907,7 +907,7 @@ selected timer must be running."
         (chronos--update-display)))))
 
 (defun chronos-edit-selected-line (time prefix)
-  "Adjust the expiry time of a selected running or paused timer
+  "Adjust the expiry TIME of a selected running or paused timer
 and optionally edit the message.
 
 The time format is the same as for `chronos-add-timer', but the
