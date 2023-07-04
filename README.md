@@ -218,6 +218,7 @@ e   | edit selected timer
 l   | lap selected timer
 F   | freeze/unfreeze the display
 q   | quit window
+r   | reset timer
 
 Whether relative times are against current time or the expiry time of the
 selected timer is controlled by the prefix.
