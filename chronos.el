@@ -273,6 +273,7 @@ running or the user is ok with killing the buffer."
 (define-key chronos-mode-map (kbd "p")      'chronos-previous-line)
 (define-key chronos-mode-map (kbd "C-p")    'chronos-previous-line)
 (define-key chronos-mode-map (kbd "<up>")   'chronos-previous-line)
+(define-key chronos-mode-map (kbd "r")      'chronos-reset-timer)
 
 (defun chronos--make-timer (expiry-time message &optional start)
   "Make a new timer object labled with MESSAGE that expires at EXPIRY-TIME.
@@ -707,8 +708,7 @@ soon to expire at the top."
                              (nthcdr 3 (decode-time))))))
 
 (defun chronos--parse-timestring (s &optional base)
-  "Parse string S into a 4 int time list specifying an expiry
-time.
+  "Parse string S into a 4 int time list specifying an expiry time.
 
 An = in the string makes it an absolute time of day (technically,
 relative to today 00:00), in 24+hr notation (i.e. to get 1am the
@@ -946,6 +946,27 @@ prefix the adjustment is relative to the current time."
           (dolist (e chronos--timers-list tl)
             (unless (chronos--expiredp e)
               (push e tl))))))
+
+;;;###autoload
+(defun chronos-reset-timer ()
+  "Reset selected timer."
+  (interactive)
+  (chronos--reset-timer-using-new-timer chronos--selected-timer)
+  (chronos--update-display))
+
+(defun chronos--reset-timer-using-new-timer (c)
+  "Reset timer function by selected timer C."
+  (let ((c2 (chronos--copy-timer c)))
+    (chronos--pause c)
+    (chronos--set-expiry-time c2 (time-add (current-time)
+                                  (seconds-to-time
+                                             (+ (chronos--seconds-since-start c)
+                                                (chronos--seconds-to-expiry c)))))
+    (chronos--set-start-time c2 (current-time))
+    (setq chronos--timers-list (delq c chronos--timers-list))
+    (setq chronos--selected-timer c2)
+    (push c2 chronos--timers-list)))
+
 
 (provide 'chronos)
 
