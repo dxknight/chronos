@@ -1,13 +1,14 @@
-;;; chronos.el --- multiple simultaneous countdown / countup timers
+;;; chronos.el --- Multiple simultaneous countdown / countup timers
 
 ;; Copyright (C) 2015 David Knight
 
 ;; Author: David Knight <dxknight@opmbx.org>
+;; Maintainer Matthias David <darkbuffalo@gnu.re>
 ;; Created: 12 May 2015
 ;; Package-Version: 1.2
 ;; Version: 1.2
 ;; Keywords: calendar
-;; URL: http://github.com/dxknight/chronos
+;; URL: http://github.com/DarkBuffalo/chronos
 ;; Package-Requires: ((emacs "27.1") (consult "0.16"))
 
 ;; This program is free software; you can redistribute it and/or
