@@ -279,6 +279,7 @@ running or the user is ok with killing the buffer."
           chronos--buffer nil)))
 
 (define-key chronos-mode-map (kbd "a")      'chronos-add-timer)
+(define-key chronos-mode-map (kbd "s")      'chronos-select-timer)
 (define-key chronos-mode-map (kbd "A")      'chronos-add-timers-from-string)
 (define-key chronos-mode-map (kbd "SPC")    'chronos-toggle-pause-selected-line)
 (define-key chronos-mode-map (kbd "e")      'chronos-edit-selected-line)

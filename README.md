@@ -5,7 +5,7 @@
 
 ## Whats New
 
-Version 1.3 added the ability to quickly choose a timer 'M-x chronos-select-timer',
+Version 1.3 added the ability to quickly choose a timer 'M-x chronos-select-timer' or `s` key,
 for this it is necessary to fill in the `chronos-standard-timers` variable.
 ```
   (setq chronos-standard-timers
@@ -229,6 +229,7 @@ l   | lap selected timer
 F   | freeze/unfreeze the display
 q   | quit window
 r   | reset timer
+s   | select timer
 
 Whether relative times are against current time or the expiry time of the
 selected timer is controlled by the prefix.
