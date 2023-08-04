@@ -9,7 +9,7 @@
 ;; Version: 1.3
 ;; Keywords: calendar
 ;; URL: http://github.com/DarkBuffalo/chronos
-;; Package-Requires: ((emacs "27.1") (consult "0.16"))
+;; Package-Requires: ((emacs "27.1"))
 
 ;; This program is free software; you can redistribute it and/or
 ;; modify it under the terms of the GNU General Public License as
@@ -75,7 +75,6 @@
 ;;; Code:
 
 (require 'notifications)
-(require 'consult)
 
 (defgroup chronos nil
   "Chronos' customization group."
@@ -828,10 +827,7 @@ The resulting timer specifications are added with
 (defun chronos-select-timer ()
   "Select a timer from `chronos-standard-timers'."
   (interactive)
-  (let ((krono (consult--read chronos-standard-timers
-                :prompt "Choose your timer : "
-                :history chronos-history
-                :require-match nil)))
+  (let ((krono (completing-read "Choose your timer: " chronos-standard-timers nil nil nil 'chronos-history)))
    (chronos-parse-string-and-add-timer krono)))
 
 
