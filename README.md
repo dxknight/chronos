@@ -5,6 +5,16 @@
 
 ## Whats New
 
+Version 1.3 added the ability to quickly choose a timer 'M-x chronos-select-timer' or `s` key,
+for this it is necessary to fill in the `chronos-standard-timers` variable.
+```
+  (setq chronos-standard-timers
+        '("Green Tea (Short)            2/Green Tea: Remove tea bag"
+          "Timebox                     25/Finish and Reflect + 5/Back to it"
+          "Break                       30/Back to it"))
+```
+and add possibility to reset timers.
+
 Version 1.2 (Internal) allows entry of multiple cumulative timers, e.g. 'M-x
 chronos-add-timers-from-string' `25/Pomodoro: Work on helm-chronos + 5/Pomodoro:
 Rest` will add two timers: one to go off in 25 minutes and one to go off in 30
@@ -218,6 +228,8 @@ e   | edit selected timer
 l   | lap selected timer
 F   | freeze/unfreeze the display
 q   | quit window
+r   | reset timer
+s   | select timer
 
 Whether relative times are against current time or the expiry time of the
 selected timer is controlled by the prefix.
